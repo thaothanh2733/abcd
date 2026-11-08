@@ -68,6 +68,7 @@
                 <div id="ocrProgressText">Đang đọc chữ trong ảnh...</div>
                 <div class="progress-bar-bg"><div class="progress-bar-fill" id="ocrProgressBar"></div></div>
               </div>
+              <p class="ocr-error-message" id="ocrErrorMessage" role="alert"></p>
               <div class="ocr-result-box" id="ocrResultBox">
                 <label for="ocrResultText">Chữ đọc được — Bác có thể sửa nếu chưa đúng</label>
                 <textarea id="ocrResultText" class="message-textarea" rows="4" aria-label="Chữ đọc được từ ảnh, có thể chỉnh sửa"></textarea>
@@ -115,6 +116,7 @@
     </section>
   </main>
 
+  <script src="ocrValidation.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

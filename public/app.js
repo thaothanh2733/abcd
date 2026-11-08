@@ -28,6 +28,7 @@ const ocrProgressBar = document.getElementById('ocrProgressBar');
 const ocrProgressText = document.getElementById('ocrProgressText');
 const ocrResultBox = document.getElementById('ocrResultBox');
 const ocrResultText = document.getElementById('ocrResultText');
+const ocrErrorMessage = document.getElementById('ocrErrorMessage');
 const analyzeBtn = document.getElementById('analyzeBtn');
 
 // Loading & Result Elements
@@ -238,6 +239,8 @@ async function prepareImageForOcr(file) {
 async function runOcrOnImage(file) {
   ocrProgressBox.style.display = 'block';
   ocrResultBox.style.display = 'none';
+  ocrErrorMessage.style.display = 'none';
+  ocrErrorMessage.textContent = '';
   ocrProgressBar.style.width = '10%';
   ocrProgressText.textContent = 'Đang chuẩn bị ảnh và tải bộ nhận diện chữ tiếng Việt...';
   analyzeBtn.disabled = true;
@@ -265,8 +268,13 @@ async function runOcrOnImage(file) {
     const extracted = ret.data.text.trim();
     ocrProgressBox.style.display = 'none';
 
-    if (!extracted || extracted.length < 5) {
-      alert('Không thể đọc rõ nội dung chữ trong ảnh này. Bác/Cô/Chú vui lòng chụp lại ảnh rõ nét hơn, hoặc dán trực tiếp nội dung tin nhắn vào ô chữ ạ!');
+    if (!isUsableOcrText(extracted, ret.data.confidence)) {
+      currentExtractedText = '';
+      textInput.value = '';
+      ocrResultText.value = '';
+      updateCharCount();
+      ocrErrorMessage.textContent = 'Ảnh này không có hoặc không đọc rõ nội dung tin nhắn. Bác/Cô/Chú vui lòng gửi lại ảnh chụp màn hình tin nhắn rõ chữ, hoặc chọn “Dán tin nhắn” để nhập nội dung cần kiểm tra.';
+      ocrErrorMessage.style.display = 'block';
       return;
     }
 
@@ -376,6 +384,15 @@ function handleSelectedImage(file) {
   }
 
   currentFile = file;
+  textInput.value = '';
+  ocrResultText.value = '';
+  currentExtractedText = '';
+  ocrResultBox.style.display = 'none';
+  ocrErrorMessage.style.display = 'none';
+  ocrErrorMessage.textContent = '';
+  resultCard.style.display = 'none';
+  resetBtn.style.display = 'none';
+  updateCharCount();
   const reader = new FileReader();
   reader.onload = (e) => {
     previewImg.src = e.target.result;
@@ -388,12 +405,19 @@ function handleSelectedImage(file) {
 
 // Xóa ảnh đã chọn
 removeImgBtn.addEventListener('click', () => {
+  const removedOcrText = currentExtractedText;
   currentFile = null;
   fileInput.value = '';
   previewImg.src = '';
   previewContainer.style.display = 'none';
   ocrResultBox.style.display = 'none';
   ocrProgressBox.style.display = 'none';
+  ocrErrorMessage.style.display = 'none';
+  ocrErrorMessage.textContent = '';
+  if (removedOcrText && textInput.value === removedOcrText) {
+    textInput.value = '';
+    updateCharCount();
+  }
   currentExtractedText = '';
 });
 

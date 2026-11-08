@@ -59,7 +59,7 @@ abcd/
 - **Frontend:** HTML5 Semantic, CSS3 Custom Properties (Variables, Flexbox, CSS Grid), Vanilla JavaScript (ES6+).
 - **Trợ năng (Accessibility):** Web Speech API (`SpeechSynthesis`) đọc to kết quả bằng giọng nói tiếng Việt; nút `− A +` điều chỉnh cỡ chữ mỗi lần 4px; nút mặt trời/mặt trăng đổi giao diện sáng/tối.
 - **Giao diện:** Bố cục tập trung, tương thích điện thoại; các nút điều khiển có lớp kính mờ, hỗ trợ focus rõ, Reduce Transparency và Reduce Motion.
-- **Thị giác máy tính (OCR):** Tesseract.js (nhận diện chữ tiếng Việt `vie` + `eng` trực tiếp trên trình duyệt, có thanh tiến trình thời gian thực).
+- **Thị giác máy tính (OCR):** Tesseract.js (nhận diện chữ tiếng Việt `vie` + `eng` trực tiếp trên trình duyệt, có thanh tiến trình thời gian thực); kiểm tra độ tin cậy và cấu trúc chữ để từ chối ảnh không có nội dung tin nhắn thay vì đưa chữ nhiễu vào phân tích.
 - **Backend:** Node.js, Express.js, CORS, Dotenv.
 - **Trí tuệ nhân tạo (AI):** Google Gemini API (`gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`, `gemini-2.5-flash-lite`) kết hợp Lớp luật cứng độc lập (**Guardrails**).
 

@@ -393,6 +393,16 @@ main {
   background: #edf5fa;
 }
 
+.ocr-error-message {
+  display: none;
+  padding: 0.9rem 1rem;
+  border: 1px solid #a51d24;
+  border-radius: 14px;
+  background: #fff0ef;
+  color: #74151a;
+  font-weight: 700;
+}
+
 .progress-bar-bg {
   height: 12px;
   margin-top: 0.65rem;
@@ -765,6 +775,12 @@ body.dark-mode .upload-description {
 body.dark-mode .ocr-progress-box {
   background: #1e303b;
   color: #f5f8fa;
+}
+
+body.dark-mode .ocr-error-message {
+  border-color: #ef8589;
+  background: #3b2022;
+  color: #ffe4e4;
 }
 
 body.dark-mode .detected-item {
