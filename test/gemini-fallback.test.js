@@ -5,7 +5,7 @@ const expectedResult = {
   alert_level: 'CÓ DẤU HIỆU ĐÁNG NGỜ',
   scenario: 'Giả danh ngân hàng',
   detected_signs: ['Tin nhắn tạo áp lực thời gian.'],
-  explanation: 'Tin nhắn yêu cầu xử lý gấp. Bác nên kiểm tra lại qua kênh chính thức.',
+  explanation: 'Tin nhắn yêu cầu xử lý gấp. Bạn nên kiểm tra lại qua kênh chính thức.',
   recommended_actions: [
     'Không bấm vào đường dẫn trong tin nhắn.',
     'Gọi số hotline chính thức của ngân hàng để hỏi lại.'

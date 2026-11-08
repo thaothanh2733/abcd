@@ -128,12 +128,12 @@ function clientAnalyzeOffline(text) {
       actions.push('Gọi điện thoại trực tiếp vào số cũ của người thân để nghe giọng nói xác nhận.');
       actions.push('Hỏi lại các thông tin riêng tư chỉ có gia đình biết.');
     } else if (scenario === 'Việc làm hoặc đầu tư online') {
-      explanation = 'Tin nhắn quảng cáo làm việc nhẹ lương cao, giật đơn hàng Shopee hoặc đầu tư tài chính sinh lời mỗi ngày và yêu cầu nạp tiền làm nhiệm vụ. Kẻ gian có thể cho bạn rút một chút tiền lúc đầu, sau đó dụ dỗ nạp số tiền lớn rồi chặn liên lạc. Bác/Cô/Chú tuyệt đối không tin vào các lời mời chào kiếm tiền dễ dàng qua mạng.';
+      explanation = 'Tin nhắn quảng cáo làm việc nhẹ lương cao, giật đơn hàng Shopee hoặc đầu tư tài chính sinh lời mỗi ngày và yêu cầu nạp tiền làm nhiệm vụ. Kẻ gian có thể cho bạn rút một chút tiền lúc đầu, sau đó dụ dỗ nạp số tiền lớn rồi chặn liên lạc. Bạn tuyệt đối không tin vào các lời mời chào kiếm tiền dễ dàng qua mạng.';
       actions.push('Không nạp tiền hoặc chuyển tiền làm bất kỳ nhiệm vụ nào.');
       actions.push('Rời khỏi các hội nhóm lạ trên mạng xã hội Telegram hoặc Zalo.');
       actions.push('Nhờ người thân có hiểu biết kiểm tra lại thông tin tuyển dụng.');
     } else {
-      explanation = 'Tin nhắn có các biểu hiện nguy cơ cao như đòi hỏi thông tin bí mật hoặc hối thúc chuyển tiền. Bác/Cô/Chú cần hết sức đề phòng và không làm theo yêu cầu trong tin nhắn.';
+      explanation = 'Tin nhắn có các biểu hiện nguy cơ cao như đòi hỏi thông tin bí mật hoặc hối thúc chuyển tiền. Bạn cần hết sức đề phòng và không làm theo yêu cầu trong tin nhắn.';
       actions.push('Không nhấp vào bất kỳ đường link nào.');
       actions.push('Không cung cấp mã OTP hay thông tin tài khoản.');
       actions.push('Tham khảo ý kiến của con cháu hoặc người thân.');
@@ -144,7 +144,7 @@ function clientAnalyzeOffline(text) {
     actions.push('Liên hệ lại với bên gửi qua kênh độc lập đáng tin cậy.');
     actions.push('Hỏi ý kiến của con cháu trong nhà trước khi làm theo.');
   } else {
-    explanation = 'Chưa phát hiện dấu hiệu lừa đảo phổ biến trong nội dung được cung cấp. Tuy nhiên, điều này không đồng nghĩa tin nhắn chắc chắn an toàn 100%. Bác/Cô/Chú vẫn nên giữ cảnh giác nếu các tin nhắn tiếp theo có yêu cầu liên quan đến tài chính.';
+    explanation = 'Chưa phát hiện dấu hiệu lừa đảo phổ biến trong nội dung được cung cấp. Tuy nhiên, điều này không đồng nghĩa tin nhắn chắc chắn an toàn 100%. Bạn vẫn nên giữ cảnh giác nếu các tin nhắn tiếp theo có yêu cầu liên quan đến tài chính.';
     actions.push('Giữ thái độ cẩn trọng khi nhận các tin nhắn bất ngờ.');
     actions.push('Nếu có nội dung lạ tiếp theo, hãy hỏi ngay người thân.');
     actions.push('Tra cứu kênh liên lạc chính thức nếu cần kiểm tra thêm.');
@@ -273,7 +273,7 @@ async function runOcrOnImage(file) {
       textInput.value = '';
       ocrResultText.value = '';
       updateCharCount();
-      ocrErrorMessage.textContent = 'Ảnh này không có hoặc không đọc rõ nội dung tin nhắn. Bác/Cô/Chú vui lòng gửi lại ảnh chụp màn hình tin nhắn rõ chữ, hoặc chọn “Dán tin nhắn” để nhập nội dung cần kiểm tra.';
+      ocrErrorMessage.textContent = 'Ảnh này không có hoặc không đọc rõ nội dung tin nhắn. Bạn vui lòng gửi lại ảnh chụp màn hình tin nhắn rõ chữ, hoặc chọn “Dán tin nhắn” để nhập nội dung cần kiểm tra.';
       ocrErrorMessage.style.display = 'block';
       return;
     }
@@ -288,7 +288,7 @@ async function runOcrOnImage(file) {
   } catch (err) {
     console.error('OCR Error:', err);
     ocrProgressBox.style.display = 'none';
-    alert('Không thể đọc chữ tự động: ' + err.message + '\n\nBác/Cô/Chú có thể dán nội dung tin nhắn trực tiếp vào ô bên cạnh để kiểm tra ngay ạ.');
+    alert('Không thể đọc chữ tự động: ' + err.message + '\n\nBạn có thể dán nội dung tin nhắn trực tiếp vào ô bên cạnh để kiểm tra ngay.');
   } finally {
     if (worker) {
       try {
@@ -431,14 +431,14 @@ async function handleAnalyze() {
 
   // Kiểm tra đầu vào rỗng
   if (!content) {
-    alert('Bác/Cô/Chú vui lòng dán nội dung tin nhắn hoặc tải ảnh có chứa chữ để Lá Chắn Người Thân kiểm tra giúp ạ!');
+    alert('Bạn vui lòng dán nội dung tin nhắn hoặc tải ảnh có chứa chữ để Lá Chắn Người Thân kiểm tra giúp nhé!');
     textInput.focus();
     return;
   }
 
   // Kiểm tra độ dài tối thiểu
   if (content.length < 4) {
-    alert('Nội dung quá ngắn để nhận diện chính xác. Bác/Cô/Chú vui lòng nhập đầy đủ câu chữ trong tin nhắn nhé.');
+    alert('Nội dung quá ngắn để nhận diện chính xác. Bạn vui lòng nhập đầy đủ câu chữ trong tin nhắn nhé.');
     return;
   }
 
@@ -574,7 +574,7 @@ function toggleSpeech() {
   const fullSpeech = `
     Kết quả kiểm tra từ Lá Chắn Người Thân.
     Mức độ cảnh báo: ${level}.
-    Những việc bác cô chú nên làm ngay: ${actionItems}.
+    Những việc bạn nên làm ngay: ${actionItems}.
     Dấu hiệu nhận biết: ${detectedItems}.
     Vì sao cần cảnh giác: ${why}.
     Lời nhắc an toàn: Đừng vội làm theo yêu cầu trong tin nhắn. Nếu chưa chắc chắn, hãy hỏi con cháu hoặc người thân đáng tin cậy.

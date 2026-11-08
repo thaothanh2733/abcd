@@ -233,7 +233,7 @@ function analyzeWithRuleEngine(rawText) {
       recommended_actions.push('Hỏi lại các thông tin chỉ hai người trong gia đình biết để kiểm chứng.');
     } else {
       explanation =
-        'Tin nhắn có chứa các dấu hiệu nguy cơ lừa đảo nghiêm trọng như yêu cầu cung cấp thông tin bảo mật bí mật hoặc thúc ép giao dịch tài chính. Kẻ gian thường đánh vào tâm lý lo sợ hoặc tò mò của người nhận để chiếm đoạt tiền. Bác/Cô/Chú cần hết sức thận trọng và không thao tác theo tin nhắn này.';
+        'Tin nhắn có chứa các dấu hiệu nguy cơ lừa đảo nghiêm trọng như yêu cầu cung cấp thông tin bảo mật bí mật hoặc thúc ép giao dịch tài chính. Kẻ gian thường đánh vào tâm lý lo sợ hoặc tò mò của người nhận để chiếm đoạt tiền. Bạn cần hết sức thận trọng và không thao tác theo tin nhắn này.';
       recommended_actions.push('Không nhấn vào liên kết lạ hoặc gửi mã xác thực cho bất kỳ ai.');
       recommended_actions.push('Không chuyển tiền cho bất kỳ tài khoản lạ nào.');
       recommended_actions.push('Tham khảo ý kiến của con cháu hoặc người có chuyên môn.');
@@ -247,7 +247,7 @@ function analyzeWithRuleEngine(rawText) {
   } else {
     // CHƯA THẤY DẤU HIỆU RÕ
     explanation =
-      'Hệ thống chưa tìm thấy các dấu hiệu lừa đảo phổ biến trong nội dung tin nhắn được cung cấp. Tuy nhiên, điều này không khẳng định tin nhắn chắc chắn an toàn 100%. Kẻ lừa đảo liên tục thay đổi hình thức tinh vi, do đó bác/cô/chú hãy luôn giữ tinh thần cảnh giác.';
+      'Hệ thống chưa tìm thấy các dấu hiệu lừa đảo phổ biến trong nội dung tin nhắn được cung cấp. Tuy nhiên, điều này không khẳng định tin nhắn chắc chắn an toàn 100%. Kẻ lừa đảo liên tục thay đổi hình thức tinh vi, do đó bạn hãy luôn giữ tinh thần cảnh giác.';
     recommended_actions.push('Vẫn giữ cảnh giác nếu tin nhắn tiếp theo có yêu cầu liên quan đến tiền bạc hoặc mã số bảo mật.');
     recommended_actions.push('Nếu có bất kỳ điều gì băn khoăn, hãy trao đổi ngay với con cháu trong nhà.');
     recommended_actions.push('Tra cứu thông tin tại các kênh chính thống của cơ quan hoặc ngân hàng.');
@@ -384,4 +384,3 @@ module.exports = {
   analyzeWithRuleEngine,
   applyGuardrails
 };
-
