@@ -4,37 +4,7 @@
  */
 
 // ==========================================================================
-// 1. DỮ LIỆU TIN NHẮN MẪU THỰC TẾ (Phục vụ trình diễn và kiểm thử nhanh)
-// ==========================================================================
-const SAMPLE_PRESETS = {
-  bank: {
-    title: 'Ngân hàng đòi OTP',
-    text: '[VCB Digibank] Phat hien giao dich bat thuong 25,000,000 VND vao luc 08:30. Tai khoan cua quy khach se bi tam khoa trong 24h. Vui long truy cap https://vcb-xacthuc-taikhoan.xyz va nhap ma OTP 682910 de huy giao dich.'
-  },
-  police: {
-    title: 'Công an dọa bắt giữ',
-    text: 'CUC AN NINH MANG VA PHONG CHONG TOI PHAM THONG BAO: So dien thoai va so CCCD cua ong/ba dang lien quan den duong day rua tien xuyen quoc gia. Yeu cau chuyen ngay 50.000.000d vao tai khoan tam giu cua Bo Cong an de chung minh trong sach. Tuyet doi khong duoc tiet lo cho nguoi khac biet.'
-  },
-  prize: {
-    title: 'Trúng thưởng xe SH nộp phí',
-    text: 'CHUC MUNG QUY KHACH! So thue bao cua ban da may man quay trung giai dac biet 01 Xe may Honda SH 150i tri gia 98 trieu dong. De nhan thuong, quy khach vui long nop 3.500.000d le phi lam thu tuc ho so va van chuyen qua so tai khoan 1903678901234.'
-  },
-  relative: {
-    title: 'Cháu mượn tiền gấp',
-    text: 'Me oi, con day. May con bi roi xuong nuoc hong roi, day la so moi. Ban con dang cap cuu o benh vien can nop vien phi gap ma con quen the, me chuyen gap 10 trieu vao so tai khoan nay cua ban con giup con: STK 0912345678 Techcombank. Con dang voi lam me oi!'
-  },
-  job: {
-    title: 'Việc làm Shopee giật đơn',
-    text: 'Tuyen cong tac vien danh gia san pham Shopee tai nha, hoa hong 30-50%, thu nhap 800k - 2 trieu/ngay. Nhan tien sau moi don hang qua Telegram. Nhan vao lien ket bit.ly/shopee-kiemtien de nap 200k nhan tien thuong dau tien.'
-  },
-  safe: {
-    title: 'Tin nhắn thông thường',
-    text: 'Bác Ba ơi, chiều nay 5 giờ Hội Người cao tuổi tổ dân phố họp chuẩn bị cho ngày hội thể dục dưỡng sinh tại Nhà văn hóa nhé. Bác nhớ đến đúng giờ ạ!'
-  }
-};
-
-// ==========================================================================
-// 2. KHỞI TẠO BIẾN VÀ ELEMENT DOM
+// KHỞI TẠO BIẾN VÀ ELEMENT DOM
 // ==========================================================================
 let currentFile = null;
 let currentExtractedText = '';
@@ -63,8 +33,6 @@ const analyzeBtn = document.getElementById('analyzeBtn');
 // Loading & Result Elements
 const loadingBox = document.getElementById('loadingBox');
 const resultCard = document.getElementById('resultCard');
-const resultBanner = document.getElementById('resultBanner');
-const alertLevelIcon = document.getElementById('alertLevelIcon');
 const alertLevelText = document.getElementById('alertLevelText');
 const scenarioBadge = document.getElementById('scenarioBadge');
 const engineBadge = document.getElementById('engineBadge');
@@ -72,22 +40,13 @@ const explanationText = document.getElementById('explanationText');
 const detectedList = document.getElementById('detectedList');
 const actionsList = document.getElementById('actionsList');
 const safetyReminderText = document.getElementById('safetyReminderText');
-const sanitizedPreviewText = document.getElementById('sanitizedPreviewText');
 const ttsBtn = document.getElementById('ttsBtn');
 const resetBtn = document.getElementById('resetBtn');
 const copyBtn = document.getElementById('copyBtn');
 
-// Accessibility & Modals
+// Accessibility controls
 const fontBtns = document.querySelectorAll('[data-font-size]');
-const contrastBtn = document.getElementById('contrastBtn');
-const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-const navMenu = document.getElementById('navMenu');
-const apiSettingsBtn = document.getElementById('apiSettingsBtn');
-const apiModal = document.getElementById('apiModal');
-const closeModalBtn = document.getElementById('closeModalBtn');
-const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
-const apiKeyInput = document.getElementById('apiKeyInput');
-const systemStatusText = document.getElementById('systemStatusText');
+const themeBtn = document.getElementById('contrastBtn');
 
 // ==========================================================================
 // 3. LOGIC LUẬT CỨNG PHÍA CLIENT (Hỗ trợ chạy độc lập không cần backend)
@@ -207,15 +166,8 @@ async function checkSystemStatus() {
   try {
     const res = await fetch('/api/status');
     if (res.ok) {
-      const data = await res.json();
+      await res.json();
       isServerOnline = true;
-      const isAi = data.ai_status.is_configured;
-      systemStatusText.innerHTML = `
-        <span style="color: ${isAi ? '#16a34a' : '#d97706'}; font-weight: 700;">
-          ${isAi ? '🟢 Đã kích hoạt Trí tuệ nhân tạo (Google Gemini)' : '🟡 Đang chạy Bộ quy tắc an toàn nội bộ (Rule Engine)'}
-        </span>
-        <br><small style="color: #64748b;">Nguồn cấu hình: ${data.ai_status.key_source}</small>
-      `;
     } else {
       setOfflineStatus();
     }
@@ -226,12 +178,6 @@ async function checkSystemStatus() {
 
 function setOfflineStatus() {
   isServerOnline = false;
-  systemStatusText.innerHTML = `
-    <span style="color: #0284c7; font-weight: 700;">
-      🔵 Chế độ độc lập trên trình duyệt (Bộ luật an toàn nội bộ)
-    </span>
-    <br><small style="color: #64748b;">Hoạt động 100% không cần kết nối mạng đến máy chủ.</small>
-  `;
 }
 
 // ==========================================================================
@@ -346,15 +292,19 @@ async function runOcrOnImage(file) {
 }
 
 // ==========================================================================
-// 6. XỬ LÝ SỰ KIỆN GIAO DIỆN (TABS, UPLOAD, PRESETS)
+// XỬ LÝ SỰ KIỆN GIAO DIỆN (TABS, UPLOAD)
 // ==========================================================================
 
 // Tabs chuyển đổi
 tabBtns.forEach((btn) => {
   btn.addEventListener('click', () => {
-    tabBtns.forEach((b) => b.classList.remove('active'));
+    tabBtns.forEach((b) => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    });
     tabPanes.forEach((p) => p.classList.remove('active'));
     btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
     const targetPane = document.getElementById(btn.dataset.tab);
     if (targetPane) targetPane.classList.add('active');
   });
@@ -445,23 +395,8 @@ removeImgBtn.addEventListener('click', () => {
   currentExtractedText = '';
 });
 
-// Tải mẫu tin nhắn thực tế
-document.querySelectorAll('.btn-sample').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    const key = btn.dataset.sample;
-    if (SAMPLE_PRESETS[key]) {
-      textInput.value = SAMPLE_PRESETS[key].text;
-      updateCharCount();
-      // Chuyển sang tab dán văn bản
-      tabBtns[0].click();
-      // Cuộn nhẹ tới nút phân tích
-      textInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  });
-});
-
 // ==========================================================================
-// 7. QUY TRÌNH PHÂN TÍCH CHÍNH (ANALYZE WORKFLOW)
+// QUY TRÌNH PHÂN TÍCH CHÍNH
 // ==========================================================================
 analyzeBtn.addEventListener('click', handleAnalyze);
 
@@ -533,34 +468,27 @@ function renderResult(data) {
   // Đặt class mức độ cho card kết quả
   resultCard.className = 'result-card';
   let levelClass = 'level-unclear';
-  let iconHtml = 'ℹ️';
 
   if (data.alert_level === 'NGUY HIỂM CAO') {
     levelClass = 'level-high';
-    iconHtml = '🚨';
   } else if (data.alert_level === 'CÓ DẤU HIỆU ĐÁNG NGỜ') {
     levelClass = 'level-suspicious';
-    iconHtml = '⚠️';
-  } else {
-    levelClass = 'level-unclear';
-    iconHtml = '🛡️';
   }
 
   resultCard.classList.add(levelClass);
   resultCard.style.display = 'block';
 
   // 1. Mức độ cảnh báo
-  alertLevelIcon.textContent = iconHtml;
   alertLevelText.textContent = data.alert_level;
 
   // 2. Kịch bản nghi ngờ
-  scenarioBadge.innerHTML = `<span>📋 Kịch bản:</span> <strong>${data.scenario}</strong>`;
+  scenarioBadge.textContent = `Kịch bản: ${data.scenario}`;
 
   // Nhãn nguồn phân tích (Minh bạch)
   if (data.analyzed_by === 'gemini_ai') {
-    engineBadge.textContent = '🤖 Phân tích bởi AI Gemini + Lớp luật cứng';
+    engineBadge.textContent = 'Phân tích bằng AI và lớp quy tắc an toàn';
   } else {
-    engineBadge.textContent = '🔒 Phân tích bởi Bộ luật an toàn nội bộ';
+    engineBadge.textContent = 'Phân tích bằng bộ quy tắc an toàn nội bộ';
   }
 
   // 3. Vì sao tin nhắn đáng ngờ?
@@ -572,7 +500,7 @@ function renderResult(data) {
     data.detected_signs.forEach((sign) => {
       const li = document.createElement('li');
       li.className = 'detected-item';
-      li.innerHTML = `<span class="detected-item-icon">⚠️</span> <span>${sign}</span>`;
+      li.textContent = sign;
       detectedList.appendChild(li);
     });
   }
@@ -583,19 +511,18 @@ function renderResult(data) {
     data.recommended_actions.forEach((act, idx) => {
       const li = document.createElement('li');
       li.className = 'action-item';
-      li.innerHTML = `
-        <div class="action-item-icon">${idx + 1}</div>
-        <span>${act}</span>
-      `;
+      const number = document.createElement('span');
+      number.className = 'action-item-icon';
+      number.textContent = String(idx + 1);
+      const text = document.createElement('span');
+      text.textContent = act;
+      li.append(number, text);
       actionsList.appendChild(li);
     });
   }
 
   // 5. Lời nhắc an toàn
   safetyReminderText.textContent = data.safety_reminder || 'Đừng vội làm theo yêu cầu trong tin nhắn. Nếu chưa chắc chắn, hãy hỏi người thân hoặc liên hệ trực tiếp với cơ quan, tổ chức qua kênh chính thức.';
-
-  // Che thông tin cá nhân xem trước
-  sanitizedPreviewText.textContent = data.sanitized_input_preview || clientMaskData(textInput.value);
 
   // Cuộn mượt đến bảng kết quả
   resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -705,10 +632,6 @@ copyBtn.addEventListener('click', () => {
   });
 });
 
-// ==========================================================================
-// 11. HỖ TRỢ NGƯỜI CAO TUỔI (TRỢ NĂNG - ACCESSIBILITY)
-// ==========================================================================
-
 // Cỡ chữ
 fontBtns.forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -719,57 +642,19 @@ fontBtns.forEach((btn) => {
 
     fontBtns.forEach((b) => b.classList.remove('active'));
     btn.classList.add('active');
+    fontBtns.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
   });
 });
 
 // Chế độ tương phản cao
-contrastBtn.addEventListener('click', () => {
-  document.body.classList.toggle('high-contrast');
-  const isHc = document.body.classList.contains('high-contrast');
-  contrastBtn.innerHTML = isHc ? '☀️ Tương phản thường' : '👁️ Tương phản cao';
-});
-
-// Mobile menu toggle
-mobileMenuBtn.addEventListener('click', () => {
-  navMenu.classList.toggle('show');
-});
-
-document.querySelectorAll('.nav-menu a').forEach((link) => {
-  link.addEventListener('click', () => {
-    navMenu.classList.remove('show');
-  });
-});
-
-// Modal cài đặt API key
-apiSettingsBtn.addEventListener('click', () => {
-  apiModal.style.display = 'flex';
-});
-
-closeModalBtn.addEventListener('click', () => {
-  apiModal.style.display = 'none';
-});
-
-window.addEventListener('click', (e) => {
-  if (e.target === apiModal) {
-    apiModal.style.display = 'none';
-  }
-});
-
-saveApiKeyBtn.addEventListener('click', async () => {
-  const key = apiKeyInput.value.trim();
-  try {
-    const res = await fetch('/api/set-key', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ apiKey: key })
-    });
-    const data = await res.json();
-    alert(data.message);
-    apiModal.style.display = 'none';
-    checkSystemStatus();
-  } catch (err) {
-    alert('Không thể lưu key lên máy chủ. Bạn có thể thêm key trực tiếp vào file .env');
-  }
+themeBtn.addEventListener('click', () => {
+  document.body.classList.toggle('dark-mode');
+  const isDarkMode = document.body.classList.contains('dark-mode');
+  themeBtn.setAttribute('aria-pressed', String(isDarkMode));
+  themeBtn.setAttribute(
+    'aria-label',
+    isDarkMode ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'
+  );
 });
 
 // Khởi động

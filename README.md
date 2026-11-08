@@ -10,9 +10,10 @@
 **Lá Chắn Người Thân** là website ứng dụng Trí tuệ Nhân tạo (AI) kết hợp cùng Lớp luật cứng độc lập (Guardrails), được thiết kế đặc biệt nhằm hỗ trợ người cao tuổi và các gia đình Việt Nam dễ dàng nhận biết, phòng ngừa các tin nhắn lừa đảo tinh vi trên điện thoại thông minh.
 
 ### 👥 Đối tượng thụ hưởng
-1. **Người cao tuổi (Đối tượng chính):** Giao diện chữ lớn (A/A+/A++), tương phản cao, thao tác 1 chạm, hỗ trợ **đọc kết quả bằng giọng nói (Text-to-Speech)**.
+1. **Người cao tuổi (Đối tượng chính):** Giao diện tập trung vào một việc: dán tin nhắn hoặc tải ảnh để kiểm tra; có cỡ chữ A/A+/A++, giao diện sáng/tối và **đọc kết quả bằng giọng nói (Text-to-Speech)**.
 2. **Con cháu và người thân:** Dễ dàng kiểm tra hộ cho ông bà, có nút sao chép kết quả gửi gia đình.
-3. **Cộng đồng người dùng Internet:** Cẩm nang nhận diện 5 kịch bản lừa đảo nguy hiểm nhất hiện nay.
+
+Giao diện chỉ giữ khu vực kiểm tra và kết quả, bỏ các mục điều hướng/cẩm nang không thiết yếu. Các nút nổi dùng chất liệu kính cho điều khiển; nội dung chính giữ nền đặc để dễ đọc.
 
 ---
 
@@ -38,8 +39,8 @@ Website nhận diện chính xác 5 nhóm kịch bản và 3 mức độ cảnh 
 ```text
 abcd/
 ├── public/                     # Giao diện Website (Frontend tĩnh có thể chạy độc lập)
-│   ├── index.html              # Trang chủ hoàn chỉnh, chuẩn ngữ nghĩa và trợ năng
-│   ├── style.css               # Phong cách hiện đại (Xanh dương, xanh ngọc), responsive 100%
+│   ├── index.html              # Luồng kiểm tra tin nhắn/ảnh và kết quả
+│   ├── style.css               # Giao diện tối giản, chất liệu kính chỉ dành cho nút điều khiển
 │   └── app.js                  # Xử lý giao diện, OCR Tesseract, Voice TTS, Dual-mode AI
 ├── test/
 │   └── run-tests.js            # Bộ kiểm thử tự động 12 tình huống thực tế
@@ -56,10 +57,11 @@ abcd/
 ## ⚡ IV. CÔNG NGHỆ SỬ DỤNG
 
 - **Frontend:** HTML5 Semantic, CSS3 Custom Properties (Variables, Flexbox, CSS Grid), Vanilla JavaScript (ES6+).
-- **Trợ năng (Accessibility):** Web Speech API (`SpeechSynthesis`) đọc to kết quả bằng giọng nói tiếng Việt; Bộ chỉnh cỡ chữ (`A`, `A+`, `A++`); Chế độ tương phản cao (`High Contrast`).
+- **Trợ năng (Accessibility):** Web Speech API (`SpeechSynthesis`) đọc to kết quả bằng giọng nói tiếng Việt; Bộ chỉnh cỡ chữ (`A`, `A+`, `A++`); nút mặt trời/mặt trăng đổi giao diện sáng/tối.
+- **Giao diện:** Bố cục tập trung, tương thích điện thoại; các nút điều khiển có lớp kính mờ, hỗ trợ focus rõ, Reduce Transparency và Reduce Motion.
 - **Thị giác máy tính (OCR):** Tesseract.js (nhận diện chữ tiếng Việt `vie` + `eng` trực tiếp trên trình duyệt, có thanh tiến trình thời gian thực).
 - **Backend:** Node.js, Express.js, CORS, Dotenv.
-- **Trí tuệ nhân tạo (AI):** Google Gemini API (`gemini-2.5-flash`, `gemini-1.5-flash`) kết hợp Lớp luật cứng độc lập (**Guardrails**).
+- **Trí tuệ nhân tạo (AI):** Google Gemini API (`gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`, `gemini-2.5-flash-lite`) kết hợp Lớp luật cứng độc lập (**Guardrails**).
 
 ---
 

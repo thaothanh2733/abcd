@@ -218,13 +218,13 @@ console.log('================================================================\n'
   const css = fs.readFileSync(__dirname + '/../public/style.css', 'utf-8');
   const hasMobileMedia = css.includes('@media (max-width: 768px)');
   const hasFontScaling = css.includes('.font-large') && css.includes('.font-xlarge');
-  const hasContrast = css.includes('.high-contrast');
-  const pass = hasMobileMedia && hasFontScaling && hasContrast;
+  const hasThemeToggle = css.includes('.dark-mode');
+  const pass = hasMobileMedia && hasFontScaling && hasThemeToggle;
   recordTest(
     11,
     'Sử dụng trên giao diện điện thoại & trợ năng người cao tuổi',
-    'Giao diện tương thích 100% mobile, có nút phóng to chữ A+ A++ và tương phản cao',
-    `Mobile CSS: ${hasMobileMedia}, Phóng to chữ: ${hasFontScaling}, Tương phản cao: ${hasContrast}`,
+    'Giao diện tương thích mobile, có nút phóng to chữ A+ A++ và chuyển giao diện sáng/tối',
+    `Mobile CSS: ${hasMobileMedia}, Phóng to chữ: ${hasFontScaling}, Chuyển sáng/tối: ${hasThemeToggle}`,
     pass,
     pass ? 'Đạt tiêu chuẩn UI/UX người cao tuổi' : 'Thiếu responsive hoặc trợ năng'
   );
