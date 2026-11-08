@@ -237,20 +237,71 @@ function setOfflineStatus() {
 // ==========================================================================
 // 5. CHỨC NĂNG OCR TRÍCH XUẤT CHỮ TỪ ẢNH (Tesseract.js)
 // ==========================================================================
+async function prepareImageForOcr(file) {
+  if (typeof createImageBitmap !== 'function') return file;
+
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(
+    2.5,
+    2800 / bitmap.width,
+    Math.sqrt(8000000 / (bitmap.width * bitmap.height))
+  );
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  try {
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context) throw new Error('Không thể chuẩn bị ảnh để nhận diện chữ.');
+
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+    context.drawImage(bitmap, 0, 0, width, height);
+
+    const image = context.getImageData(0, 0, width, height);
+    for (let index = 0; index < image.data.length; index += 4) {
+      const luminance = Math.round(
+        image.data[index] * 0.299 +
+        image.data[index + 1] * 0.587 +
+        image.data[index + 2] * 0.114
+      );
+      const enhanced = Math.max(0, Math.min(255, (luminance - 128) * 1.12 + 128));
+      image.data[index] = enhanced;
+      image.data[index + 1] = enhanced;
+      image.data[index + 2] = enhanced;
+    }
+    context.putImageData(image, 0, 0);
+
+    return await new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('Không thể xử lý ảnh. Vui lòng thử ảnh khác.'));
+      }, 'image/png');
+    });
+  } finally {
+    bitmap.close();
+    canvas.width = 0;
+    canvas.height = 0;
+  }
+}
+
 async function runOcrOnImage(file) {
   ocrProgressBox.style.display = 'block';
   ocrResultBox.style.display = 'none';
   ocrProgressBar.style.width = '10%';
-  ocrProgressText.textContent = 'Đang tải bộ nhận diện chữ tiếng Việt...';
+  ocrProgressText.textContent = 'Đang chuẩn bị ảnh và tải bộ nhận diện chữ tiếng Việt...';
   analyzeBtn.disabled = true;
+  let worker;
 
   try {
-    // Kiểm tra xem Tesseract đã nạp chưa
     if (typeof Tesseract === 'undefined') {
       throw new Error('Thư viện OCR chưa tải xong, vui lòng đợi vài giây hoặc kiểm tra kết nối mạng.');
     }
 
-    const worker = await Tesseract.createWorker('vie+eng', 1, {
+    const imageForOcr = await prepareImageForOcr(file);
+    worker = await Tesseract.createWorker('vie+eng', 1, {
       logger: (m) => {
         if (m.status === 'recognizing text') {
           const progress = Math.round((m.progress || 0) * 100);
@@ -260,8 +311,8 @@ async function runOcrOnImage(file) {
       }
     });
 
-    const ret = await worker.recognize(file);
-    await worker.terminate();
+    await worker.setParameters({ preserve_interword_spaces: '1' });
+    const ret = await worker.recognize(imageForOcr);
 
     const extracted = ret.data.text.trim();
     ocrProgressBox.style.display = 'none';
@@ -274,15 +325,22 @@ async function runOcrOnImage(file) {
     currentExtractedText = extracted;
     ocrResultBox.style.display = 'block';
     ocrResultText.value = extracted;
-    // Tự động chuyển văn bản sang textarea để người dùng kiểm tra
     textInput.value = extracted;
     updateCharCount();
+    ocrResultText.focus();
 
   } catch (err) {
     console.error('OCR Error:', err);
     ocrProgressBox.style.display = 'none';
     alert('Không thể đọc chữ tự động: ' + err.message + '\n\nBác/Cô/Chú có thể dán nội dung tin nhắn trực tiếp vào ô bên cạnh để kiểm tra ngay ạ.');
   } finally {
+    if (worker) {
+      try {
+        await worker.terminate();
+      } catch (err) {
+        console.warn('Không thể đóng bộ nhận diện OCR:', err);
+      }
+    }
     analyzeBtn.disabled = false;
   }
 }
@@ -304,9 +362,18 @@ tabBtns.forEach((btn) => {
 
 // Đếm ký tự
 textInput.addEventListener('input', updateCharCount);
+ocrResultText.addEventListener('input', () => {
+  currentExtractedText = ocrResultText.value;
+  textInput.value = currentExtractedText;
+  updateCharCount();
+});
 function updateCharCount() {
   const len = textInput.value.length;
   charCount.textContent = `${len} ký tự`;
+  if (ocrResultBox.style.display !== 'none' && ocrResultText.value !== textInput.value) {
+    ocrResultText.value = textInput.value;
+    currentExtractedText = textInput.value;
+  }
 }
 
 // Xóa văn bản

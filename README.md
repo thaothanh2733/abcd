@@ -113,6 +113,12 @@ Dự án hỗ trợ 2 cách thêm Google Gemini API Key:
 
 > 💡 **Chế độ thử nghiệm minh bạch:** Nếu chưa cấu hình API Key, hệ thống tự động hiển thị huy hiệu: *"Khóa AI chưa cấu hình - Đang bảo vệ bằng Bộ quy tắc an toàn nội bộ"*. Tuyệt đối không sinh dữ liệu giả lập ngẫu nhiên gây nhầm lẫn!
 
+### Fallback model khi Gemini giới hạn quota
+
+- Hệ thống thử lần lượt `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite` và `gemini-2.5-flash-lite` ([danh sách model](https://ai.google.dev/gemini-api/docs/models)).
+- Chỉ tự chuyển model khi API báo model không tồn tại (404) hoặc giới hạn tần suất/quota (429). Lỗi API key hay quyền truy cập sẽ không bị che giấu bằng cách thử model khác.
+- Hạn mức Gemini phụ thuộc vào dự án, không chỉ API key ([hướng dẫn hạn mức](https://ai.google.dev/gemini-api/docs/rate-limits)). Chuyển model có thể giúp khi giới hạn riêng của model đầu tiên đã hết, nhưng không vượt qua hạn mức dùng chung của dự án; nếu mọi model đều bị giới hạn, ứng dụng sẽ chuyển sang Bộ quy tắc an toàn nội bộ.
+
 ---
 
 ## 🧪 VII. KẾT QUẢ KIỂM THỬ THỰC TẾ (12/12 TÌNH HUỐNG)

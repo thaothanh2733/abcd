@@ -60,8 +60,12 @@ async function analyzeWithGemini(rawText, apiKeyOverride = null) {
   // 1. Che thông tin nhạy cảm trước khi gửi tới API bên thứ 3 (Bảo vệ quyền riêng tư)
   const maskedText = maskSensitiveData(rawText);
 
-  // 2. Thử lần lượt các model phổ biến (ưu tiên 2.5 flash, sau đó 1.5 flash)
-  const modelsToTry = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+  // Ưu tiên Gemini 3.5 Flash-Lite, sau đó dùng các model nhẹ hơn khi model trước hết quota.
+  const modelsToTry = [
+    'gemini-3.5-flash-lite',
+    'gemini-3.1-flash-lite',
+    'gemini-2.5-flash-lite'
+  ];
   let lastError = null;
 
   for (const modelName of modelsToTry) {
@@ -88,20 +92,25 @@ async function analyzeWithGemini(rawText, apiKeyOverride = null) {
         }
       };
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
+      let response;
+      try {
+        response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody),
+          signal: controller.signal
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Gemini API error (${response.status}): ${errorText}`);
+        const apiError = new Error(`Gemini API error (${response.status}) for ${modelName}: ${errorText}`);
+        apiError.status = response.status;
+        throw apiError;
       }
 
       const responseData = await response.json();
@@ -133,15 +142,13 @@ async function analyzeWithGemini(rawText, apiKeyOverride = null) {
       return safeResult;
     } catch (err) {
       lastError = err;
-      // Nếu là lỗi abort (timeout) hoặc model 404 thì thử tiếp model sau
+      // Lỗi quota có thể chỉ áp dụng cho model hiện tại; model không còn tồn tại cũng được bỏ qua.
       if (err.name === 'AbortError') {
         throw new Error('Thời gian phản hồi của dịch vụ AI quá lâu (Timeout 10s).');
       }
-      // Nếu lỗi 400 do model name thì tiếp tục thử model tiếp theo
-      if (err.message && err.message.includes('404')) {
+      if (err.status === 404 || err.status === 429) {
         continue;
       }
-      // Đối với các lỗi khác (sai key, quota), ngắt vòng lặp
       break;
     }
   }
