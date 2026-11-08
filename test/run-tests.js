@@ -236,12 +236,14 @@ console.log('================================================================\n'
     css.includes('.tts-button') &&
     css.includes('.reset-button');
   const hasThemeToggle = css.includes('.dark-mode');
-  const pass = hasMobileMedia && hasFontScaling && hasSeniorFriendlyResults && hasThemeToggle;
+  const darkPalette = ['#1b365d', '#005a9c', '#60c1e5', '#a0e0ef'];
+  const hasDarkPalette = darkPalette.every((color) => css.includes(color));
+  const pass = hasMobileMedia && hasFontScaling && hasSeniorFriendlyResults && hasThemeToggle && hasDarkPalette;
   recordTest(
     11,
     'Sử dụng trên giao diện điện thoại & trợ năng người cao tuổi',
     'Giao diện mobile, tăng/giảm chữ 4px, kết quả đúng thứ tự và bỏ kịch bản/nội dung sao chép',
-    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}`,
+    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}, Bảng màu tối: ${hasDarkPalette}`,
     pass,
     pass ? 'Đạt tiêu chuẩn UI/UX người cao tuổi' : 'Thiếu responsive hoặc trợ năng'
   );

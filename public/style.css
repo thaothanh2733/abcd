@@ -682,13 +682,13 @@ main {
 
 body.dark-mode {
   color-scheme: dark;
-  --page: #171b20;
-  --surface: #242a30;
+  --page: #1b365d;
+  --surface: #005a9c;
   --ink: #f4f7f9;
-  --muted: #d3dce3;
-  --line: #56636d;
-  --blue: #8bd5ff;
-  --teal: #6de0cf;
+  --muted: #e1f3f8;
+  --line: #60c1e5;
+  --blue: #a0e0ef;
+  --teal: #60c1e5;
   --red: #7f2025;
   --red-bg: #3b2022;
   --amber: #75501b;
@@ -698,43 +698,45 @@ body.dark-mode {
 }
 
 body.dark-mode .floating-tools {
-  border-color: rgba(229, 239, 246, 0.3);
+  border-color: rgba(160, 224, 239, 0.52);
   background:
-    linear-gradient(145deg, rgba(54, 64, 72, 0.94), rgba(32, 39, 45, 0.88)),
-    rgba(32, 39, 45, 0.9);
+    linear-gradient(145deg, rgba(96, 193, 229, 0.32), rgba(0, 90, 156, 0.9)),
+    rgba(27, 54, 93, 0.94);
 }
 
 body.dark-mode .glass-control,
 body.dark-mode .glass-button {
-  border-color: rgba(223, 236, 245, 0.3);
+  border-color: rgba(160, 224, 239, 0.48);
   background:
-    linear-gradient(155deg, rgba(78, 91, 101, 0.9), rgba(43, 52, 59, 0.88)),
-    rgba(43, 52, 59, 0.9);
+    linear-gradient(155deg, rgba(96, 193, 229, 0.28), rgba(0, 90, 156, 0.82)),
+    rgba(27, 54, 93, 0.88);
   color: #f5f8fa;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.24),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.24),
-    0 3px 8px rgba(0, 0, 0, 0.3);
+    inset 0 1px 0 rgba(160, 224, 239, 0.48),
+    inset 0 -1px 0 rgba(0, 32, 66, 0.35),
+    0 3px 8px rgba(0, 20, 48, 0.38);
 }
 
 body.dark-mode .glass-control[aria-pressed="true"],
 body.dark-mode .tab-btn.active {
-  background: #394750;
-  box-shadow: inset 0 0 0 2px #a5c1d2;
+  background: #a0e0ef;
+  color: #1b365d;
+  box-shadow: inset 0 0 0 2px #60c1e5;
 }
 
 body.dark-mode .analyze-button,
 body.dark-mode .reset-button {
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.2), transparent 58%),
-    linear-gradient(110deg, #164a70, #087c70);
-  color: #ffffff;
+    linear-gradient(145deg, rgba(160, 224, 239, 0.2), transparent 58%),
+    linear-gradient(110deg, #005a9c, #1b365d);
+  color: #f4fbff;
+  border-color: #60c1e5;
 }
 
 body.dark-mode .tts-button {
-  border-color: #8097a5;
-  background: #30424e;
-  color: #f5f8fa;
+  border-color: #60c1e5;
+  background: linear-gradient(145deg, #a0e0ef, #60c1e5);
+  color: #1b365d;
 }
 
 body.dark-mode .theme-icon-sun {
@@ -754,26 +756,27 @@ body.dark-mode .input-tabs,
 body.dark-mode .upload-button,
 body.dark-mode .image-preview-container,
 body.dark-mode .result-disclosure {
-  background: #1c2227;
-  border-color: #687780;
+  background: #005a9c;
+  border-color: #60c1e5;
 }
 
 body.dark-mode .message-textarea {
-  background: #171c20;
+  background: #1b365d;
   color: #f5f8fa;
-  border-color: #82919a;
+  border-color: #60c1e5;
 }
 
 body.dark-mode .message-textarea::placeholder {
-  color: #c1ccd3;
+  color: #d5edf5;
 }
 
 body.dark-mode .upload-description {
-  color: #d3dce3;
+  color: #e1f3f8;
 }
 
 body.dark-mode .ocr-progress-box {
-  background: #1e303b;
+  background: #005a9c;
+  border-color: #60c1e5;
   color: #f5f8fa;
 }
 
@@ -784,21 +787,27 @@ body.dark-mode .ocr-error-message {
 }
 
 body.dark-mode .detected-item {
-  background: #3a2a23;
-  border-color: #8f674f;
-  color: #fff1e8;
+  background: #005a9c;
+  border-color: #60c1e5;
+  color: #f4fbff;
 }
 
 body.dark-mode .action-item {
-  background: #20352c;
-  border-color: #527b65;
-  color: #e7fff0;
+  background: #a0e0ef;
+  border-color: #60c1e5;
+  color: #1b365d;
 }
 
 body.dark-mode .safety-reminder-text {
-  background: #20313d;
-  border-color: #78b9df;
-  color: #eff9ff;
+  background: #a0e0ef;
+  border-color: #60c1e5;
+  color: #1b365d;
+}
+
+body.dark-mode button:focus-visible,
+body.dark-mode a:focus-visible,
+body.dark-mode textarea:focus-visible {
+  outline-color: #a0e0ef;
 }
 
 @keyframes spin {
@@ -862,13 +871,23 @@ body.dark-mode .safety-reminder-text {
   body.dark-mode .floating-tools,
   body.dark-mode .glass-control,
   body.dark-mode .glass-button:not(.analyze-button):not(.reset-button) {
-    background: #202a31;
-    box-shadow: inset 0 0 0 1px #91a5b1;
+    background: #005a9c;
+    box-shadow: inset 0 0 0 1px #60c1e5;
   }
 
   body.dark-mode .analyze-button,
   body.dark-mode .reset-button {
-    background: #164a70;
+    background: #005a9c;
+    color: #ffffff;
+  }
+
+  body.dark-mode .tts-button,
+  body.dark-mode .action-item,
+  body.dark-mode .safety-reminder-text,
+  body.dark-mode .glass-control[aria-pressed="true"],
+  body.dark-mode .tab-btn.active {
+    background: #a0e0ef;
+    color: #1b365d;
   }
 }
 
