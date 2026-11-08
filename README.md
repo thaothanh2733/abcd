@@ -13,7 +13,7 @@
 1. **Người cao tuổi (Đối tượng chính):** Giao diện tập trung vào một việc: dán tin nhắn hoặc tải ảnh để kiểm tra; có nút tăng/giảm cỡ chữ từng 4px, giao diện sáng/tối và **đọc kết quả bằng giọng nói (Text-to-Speech)**.
 2. **Con cháu và người thân:** Dễ dàng kiểm tra hộ cho ông bà, với hướng dẫn hành động được hiển thị rõ trước các phần chi tiết có thể mở rộng.
 
-Giao diện chỉ giữ khu vực kiểm tra và kết quả, bỏ các mục điều hướng/cẩm nang không thiết yếu. Các nút nổi dùng chất liệu kính cho điều khiển; nội dung chính giữ nền đặc để dễ đọc. Chế độ tối dùng nền navy `#0F172A`, thẻ than `#1E1E1E`, chữ sáng `#E0E0E0`/`#B0B0B0`, vàng nhấn `#FACC15`, xanh cyan `#38BDF8` và xanh lá hành động `#4ADE80`.
+Giao diện chỉ giữ khu vực kiểm tra và kết quả, bỏ các mục điều hướng/cẩm nang không thiết yếu. Các nút nổi dùng chất liệu kính cho điều khiển; nội dung chính giữ nền đặc để dễ đọc. Chế độ tối dùng nền navy `#0F172A`, thẻ than `#1E1E1E`, chữ sáng `#E0E0E0`/`#B0B0B0`, vàng nhấn `#FACC15`, xanh cyan `#38BDF8` và xanh lá hành động `#22C55E`; trường nhập có viền focus vàng rõ ràng.
 
 ---
 

@@ -236,14 +236,24 @@ console.log('================================================================\n'
     css.includes('.tts-button') &&
     css.includes('.reset-button');
   const hasThemeToggle = css.includes('.dark-mode');
-  const darkPalette = ['#0f172a', '#1e1e1e', '#e0e0e0', '#b0b0b0', '#facc15', '#38bdf8', '#4ade80'];
+  const darkPalette = [
+    '#0f172a', '#1e1e1e', '#e0e0e0', '#b0b0b0', '#facc15', '#38bdf8', '#4ade80',
+    '#f8fafc', '#cbd5e1', '#64748b', '#94a3b8', '#22c55e'
+  ];
   const hasDarkPalette = darkPalette.every((color) => css.includes(color));
-  const pass = hasMobileMedia && hasFontScaling && hasSeniorFriendlyResults && hasThemeToggle && hasDarkPalette;
+  const hasDarkModeFocus = css.includes('body.dark-mode .message-textarea:focus') &&
+    css.includes('rgba(250, 204, 21, 0.25)');
+  const hasReadableDarkHelpers = css.includes('body.dark-mode .privacy-note') &&
+    css.includes('body.dark-mode .textarea-footer') &&
+    css.includes('body.dark-mode .upload-description') &&
+    css.includes('body.dark-mode .section-kicker');
+  const pass = hasMobileMedia && hasFontScaling && hasSeniorFriendlyResults &&
+    hasThemeToggle && hasDarkPalette && hasDarkModeFocus && hasReadableDarkHelpers;
   recordTest(
     11,
     'Sử dụng trên giao diện điện thoại & trợ năng người cao tuổi',
     'Giao diện mobile, tăng/giảm chữ 4px, kết quả đúng thứ tự và bỏ kịch bản/nội dung sao chép',
-    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}, Bảng màu tối: ${hasDarkPalette}`,
+    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}, Bảng màu tối: ${hasDarkPalette}, Focus rõ: ${hasDarkModeFocus}, Chữ phụ dễ đọc: ${hasReadableDarkHelpers}`,
     pass,
     pass ? 'Đạt tiêu chuẩn UI/UX người cao tuổi' : 'Thiếu responsive hoặc trợ năng'
   );
