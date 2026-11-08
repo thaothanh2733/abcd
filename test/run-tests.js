@@ -236,7 +236,7 @@ console.log('================================================================\n'
     css.includes('.tts-button') &&
     css.includes('.reset-button');
   const hasThemeToggle = css.includes('.dark-mode');
-  const darkPalette = ['#1b365d', '#005a9c', '#60c1e5', '#a0e0ef'];
+  const darkPalette = ['#0f172a', '#1e1e1e', '#e0e0e0', '#b0b0b0', '#facc15', '#38bdf8', '#4ade80'];
   const hasDarkPalette = darkPalette.every((color) => css.includes(color));
   const pass = hasMobileMedia && hasFontScaling && hasSeniorFriendlyResults && hasThemeToggle && hasDarkPalette;
   recordTest(
