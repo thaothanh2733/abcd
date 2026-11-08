@@ -11,10 +11,9 @@
 </head>
 <body>
   <div class="floating-tools" role="group" aria-label="Cài đặt dễ đọc">
-    <span class="tools-label">Cỡ chữ</span>
-    <button class="glass-control" type="button" data-font-size="normal" aria-label="Cỡ chữ thường" aria-pressed="true">A</button>
-    <button class="glass-control" type="button" data-font-size="large" aria-label="Cỡ chữ lớn" aria-pressed="false">A+</button>
-    <button class="glass-control" type="button" data-font-size="xlarge" aria-label="Cỡ chữ rất lớn" aria-pressed="false">A++</button>
+    <button class="glass-control font-step-control" type="button" id="fontDecreaseBtn" aria-label="Giảm cỡ chữ 4 pixel">−</button>
+    <span class="font-size-indicator" id="fontSizeIndicator" aria-live="polite">A</span>
+    <button class="glass-control font-step-control" type="button" id="fontIncreaseBtn" aria-label="Tăng cỡ chữ 4 pixel">+</button>
     <span class="tools-divider" aria-hidden="true"></span>
     <button class="glass-control theme-control" type="button" id="contrastBtn" aria-label="Chuyển sang giao diện tối" title="Chuyển giao diện sáng hoặc tối" aria-pressed="false">
       <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true">
@@ -93,34 +92,26 @@
               <p class="banner-level-text" id="alertLevelText"></p>
             </div>
           </div>
-          <div class="banner-badges">
-            <p class="scenario-badge" id="scenarioBadge"></p>
-            <p class="engine-badge" id="engineBadge"></p>
-          </div>
         </div>
 
         <div class="result-body">
-          <section class="result-section">
-            <h3 class="result-heading">Dấu hiệu nhận biết</h3>
-            <ul class="detected-list" id="detectedList"></ul>
-          </section>
-          <section class="result-section">
-            <h3 class="result-heading">Vì sao cần cảnh giác?</h3>
-            <p class="result-explanation-text" id="explanationText"></p>
-          </section>
+          <button type="button" class="glass-button tts-button" id="ttsBtn">Đọc kết quả bằng giọng nói</button>
           <section class="result-section">
             <h3 class="result-heading">Bác nên làm gì?</h3>
             <ul class="actions-list" id="actionsList"></ul>
           </section>
+          <details class="result-disclosure">
+            <summary>Dấu hiệu nhận biết</summary>
+            <ul class="detected-list" id="detectedList"></ul>
+          </details>
+          <details class="result-disclosure">
+            <summary>Vì sao cần cảnh giác?</summary>
+            <p class="result-explanation-text" id="explanationText"></p>
+          </details>
           <p class="safety-reminder-text" id="safetyReminderText"></p>
         </div>
-
-        <div class="result-footer">
-          <button type="button" class="glass-button secondary-button" id="ttsBtn">Đọc kết quả</button>
-          <button type="button" class="glass-button secondary-button" id="resetBtn">Kiểm tra tin khác</button>
-          <button type="button" class="glass-button secondary-button" id="copyBtn">Sao chép kết quả</button>
-        </div>
       </section>
+      <button type="button" class="glass-button reset-button" id="resetBtn">Kiểm tra tin nhắn khác</button>
     </section>
   </main>
 

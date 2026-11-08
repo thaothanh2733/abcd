@@ -34,19 +34,21 @@ const analyzeBtn = document.getElementById('analyzeBtn');
 const loadingBox = document.getElementById('loadingBox');
 const resultCard = document.getElementById('resultCard');
 const alertLevelText = document.getElementById('alertLevelText');
-const scenarioBadge = document.getElementById('scenarioBadge');
-const engineBadge = document.getElementById('engineBadge');
 const explanationText = document.getElementById('explanationText');
 const detectedList = document.getElementById('detectedList');
 const actionsList = document.getElementById('actionsList');
 const safetyReminderText = document.getElementById('safetyReminderText');
 const ttsBtn = document.getElementById('ttsBtn');
 const resetBtn = document.getElementById('resetBtn');
-const copyBtn = document.getElementById('copyBtn');
 
 // Accessibility controls
-const fontBtns = document.querySelectorAll('[data-font-size]');
+const fontDecreaseBtn = document.getElementById('fontDecreaseBtn');
+const fontIncreaseBtn = document.getElementById('fontIncreaseBtn');
+const fontSizeIndicator = document.getElementById('fontSizeIndicator');
 const themeBtn = document.getElementById('contrastBtn');
+const MIN_FONT_SIZE = 15;
+const MAX_FONT_SIZE = 31;
+let currentFontSize = 19;
 
 // ==========================================================================
 // 3. LOGIC LUẬT CỨNG PHÍA CLIENT (Hỗ trợ chạy độc lập không cần backend)
@@ -477,21 +479,12 @@ function renderResult(data) {
 
   resultCard.classList.add(levelClass);
   resultCard.style.display = 'block';
+  resetBtn.style.display = 'inline-flex';
 
   // 1. Mức độ cảnh báo
   alertLevelText.textContent = data.alert_level;
 
-  // 2. Kịch bản nghi ngờ
-  scenarioBadge.textContent = `Kịch bản: ${data.scenario}`;
-
-  // Nhãn nguồn phân tích (Minh bạch)
-  if (data.analyzed_by === 'gemini_ai') {
-    engineBadge.textContent = 'Phân tích bằng AI và lớp quy tắc an toàn';
-  } else {
-    engineBadge.textContent = 'Phân tích bằng bộ quy tắc an toàn nội bộ';
-  }
-
-  // 3. Vì sao tin nhắn đáng ngờ?
+  // 2. Vì sao tin nhắn đáng ngờ?
   explanationText.textContent = data.explanation;
 
   // Dấu hiệu phát hiện
@@ -545,20 +538,21 @@ function toggleSpeech() {
   }
 
   const level = alertLevelText.textContent;
-  const scenario = scenarioBadge.textContent;
   const why = explanationText.textContent;
 
-  // Lấy các việc nên làm
-  const actionItems = Array.from(actionsList.querySelectorAll('li span'))
-    .map((s, i) => `Việc thứ ${i + 1}: ${s.textContent}`)
+  const actionItems = Array.from(actionsList.querySelectorAll('.action-item > span:last-child'))
+    .map((item, i) => `Việc thứ ${i + 1}: ${item.textContent}`)
+    .join('. ');
+  const detectedItems = Array.from(detectedList.querySelectorAll('li'))
+    .map((item) => item.textContent)
     .join('. ');
 
   const fullSpeech = `
     Kết quả kiểm tra từ Lá Chắn Người Thân.
     Mức độ cảnh báo: ${level}.
-    ${scenario}.
-    Vì sao tin nhắn đáng ngờ: ${why}.
     Những việc bác cô chú nên làm ngay: ${actionItems}.
+    Dấu hiệu nhận biết: ${detectedItems}.
+    Vì sao cần cảnh giác: ${why}.
     Lời nhắc an toàn: Đừng vội làm theo yêu cầu trong tin nhắn. Nếu chưa chắc chắn, hãy hỏi con cháu hoặc người thân đáng tin cậy.
   `;
 
@@ -569,7 +563,7 @@ function toggleSpeech() {
   currentUtterance.onstart = () => {
     isSpeechActive = true;
     ttsBtn.classList.add('speaking');
-    ttsBtn.innerHTML = '⏸️ <span>Tạm dừng đọc</span>';
+    ttsBtn.textContent = 'Dừng đọc';
   };
 
   currentUtterance.onend = () => {
@@ -589,11 +583,11 @@ function stopSpeaking() {
   }
   isSpeechActive = false;
   ttsBtn.classList.remove('speaking');
-  ttsBtn.innerHTML = '🔊 <span>Đọc kết quả bằng giọng nói</span>';
+  ttsBtn.textContent = 'Đọc kết quả bằng giọng nói';
 }
 
 // ==========================================================================
-// 10. CÁC NÚT ĐIỀU KHIỂN: LÀM MỚI, SAO CHÉP KẾT QUẢ
+// CÁC NÚT ĐIỀU KHIỂN: KIỂM TRA LẠI
 // ==========================================================================
 
 // Kiểm tra tin nhắn khác
@@ -603,48 +597,24 @@ resetBtn.addEventListener('click', () => {
   updateCharCount();
   removeImgBtn.click();
   resultCard.style.display = 'none';
+  resetBtn.style.display = 'none';
+  if (!tabBtns[0].classList.contains('active')) tabBtns[0].click();
   textInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
   textInput.focus();
 });
 
-// Sao chép kết quả gửi cho người thân
-copyBtn.addEventListener('click', () => {
-  const level = alertLevelText.textContent;
-  const scenario = scenarioBadge.textContent;
-  const why = explanationText.textContent;
-  const reminder = safetyReminderText.textContent;
-
-  const copyContent = `[LÁ CHẮN NGƯỜI THÂN - KẾT QUẢ KIỂM TRA TIN NHẮN]\n\n` +
-    `⚠️ Mức độ cảnh báo: ${level}\n` +
-    `📋 Kịch bản: ${scenario}\n\n` +
-    `💡 Giải thích: ${why}\n\n` +
-    `🛡️ Lời khuyên: ${reminder}\n\n` +
-    `"Nhận được tin lạ, không ai phải đoán một mình."`;
-
-  navigator.clipboard.writeText(copyContent).then(() => {
-    const originalText = copyBtn.innerHTML;
-    copyBtn.innerHTML = '✅ <span>Đã sao chép!</span>';
-    setTimeout(() => {
-      copyBtn.innerHTML = originalText;
-    }, 2000);
-  }).catch(() => {
-    alert('Không thể tự động sao chép. Bác/Cô/Chú có thể chụp lại màn hình kết quả này nhé!');
-  });
-});
-
 // Cỡ chữ
-fontBtns.forEach((btn) => {
-  btn.addEventListener('click', () => {
-    const size = btn.dataset.fontSize;
-    document.body.classList.remove('font-large', 'font-xlarge');
-    if (size === 'large') document.body.classList.add('font-large');
-    if (size === 'xlarge') document.body.classList.add('font-xlarge');
+function updateFontSize(nextSize) {
+  currentFontSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, nextSize));
+  document.documentElement.style.setProperty('--base-size', `${currentFontSize}px`);
+  fontSizeIndicator.textContent = 'A';
+  fontSizeIndicator.setAttribute('aria-label', `Cỡ chữ hiện tại: ${currentFontSize} pixel`);
+  fontDecreaseBtn.disabled = currentFontSize === MIN_FONT_SIZE;
+  fontIncreaseBtn.disabled = currentFontSize === MAX_FONT_SIZE;
+}
 
-    fontBtns.forEach((b) => b.classList.remove('active'));
-    btn.classList.add('active');
-    fontBtns.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
-  });
-});
+fontDecreaseBtn.addEventListener('click', () => updateFontSize(currentFontSize - 4));
+fontIncreaseBtn.addEventListener('click', () => updateFontSize(currentFontSize + 4));
 
 // Chế độ tương phản cao
 themeBtn.addEventListener('click', () => {
@@ -661,4 +631,6 @@ themeBtn.addEventListener('click', () => {
 window.addEventListener('DOMContentLoaded', () => {
   checkSystemStatus();
   updateCharCount();
+  resetBtn.style.display = 'none';
+  updateFontSize(currentFontSize);
 });

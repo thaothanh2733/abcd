@@ -10,8 +10,8 @@
 **Lá Chắn Người Thân** là website ứng dụng Trí tuệ Nhân tạo (AI) kết hợp cùng Lớp luật cứng độc lập (Guardrails), được thiết kế đặc biệt nhằm hỗ trợ người cao tuổi và các gia đình Việt Nam dễ dàng nhận biết, phòng ngừa các tin nhắn lừa đảo tinh vi trên điện thoại thông minh.
 
 ### 👥 Đối tượng thụ hưởng
-1. **Người cao tuổi (Đối tượng chính):** Giao diện tập trung vào một việc: dán tin nhắn hoặc tải ảnh để kiểm tra; có cỡ chữ A/A+/A++, giao diện sáng/tối và **đọc kết quả bằng giọng nói (Text-to-Speech)**.
-2. **Con cháu và người thân:** Dễ dàng kiểm tra hộ cho ông bà, có nút sao chép kết quả gửi gia đình.
+1. **Người cao tuổi (Đối tượng chính):** Giao diện tập trung vào một việc: dán tin nhắn hoặc tải ảnh để kiểm tra; có nút tăng/giảm cỡ chữ từng 4px, giao diện sáng/tối và **đọc kết quả bằng giọng nói (Text-to-Speech)**.
+2. **Con cháu và người thân:** Dễ dàng kiểm tra hộ cho ông bà, với hướng dẫn hành động được hiển thị rõ trước các phần chi tiết có thể mở rộng.
 
 Giao diện chỉ giữ khu vực kiểm tra và kết quả, bỏ các mục điều hướng/cẩm nang không thiết yếu. Các nút nổi dùng chất liệu kính cho điều khiển; nội dung chính giữ nền đặc để dễ đọc.
 
@@ -57,7 +57,7 @@ abcd/
 ## ⚡ IV. CÔNG NGHỆ SỬ DỤNG
 
 - **Frontend:** HTML5 Semantic, CSS3 Custom Properties (Variables, Flexbox, CSS Grid), Vanilla JavaScript (ES6+).
-- **Trợ năng (Accessibility):** Web Speech API (`SpeechSynthesis`) đọc to kết quả bằng giọng nói tiếng Việt; Bộ chỉnh cỡ chữ (`A`, `A+`, `A++`); nút mặt trời/mặt trăng đổi giao diện sáng/tối.
+- **Trợ năng (Accessibility):** Web Speech API (`SpeechSynthesis`) đọc to kết quả bằng giọng nói tiếng Việt; nút `− A +` điều chỉnh cỡ chữ mỗi lần 4px; nút mặt trời/mặt trăng đổi giao diện sáng/tối.
 - **Giao diện:** Bố cục tập trung, tương thích điện thoại; các nút điều khiển có lớp kính mờ, hỗ trợ focus rõ, Reduce Transparency và Reduce Motion.
 - **Thị giác máy tính (OCR):** Tesseract.js (nhận diện chữ tiếng Việt `vie` + `eng` trực tiếp trên trình duyệt, có thanh tiến trình thời gian thực).
 - **Backend:** Node.js, Express.js, CORS, Dotenv.
@@ -139,7 +139,7 @@ Kiểm thử tự động được thực hiện qua lệnh: `npm test`
 | **8** | Nhập nội dung trống | Bấm phân tích khi ô chữ trống | Chặn phân tích, hiện thông báo nhắc nhở | Báo lỗi 400 và nhắc người dùng nhập nội dung cụ thể | **ĐẠT** | Bắt lỗi ở cả Client và Server. |
 | **9** | Ảnh không có chữ | Tải ảnh phong cảnh hoặc ảnh mờ | Báo không đọc được chữ, khuyên chụp lại | Thông báo ảnh không rõ nét và hướng dẫn nhập chữ | **ĐẠT** | Đã kiểm tra độ dài chữ OCR (< 5 ký tự). |
 | **10** | Lỗi API hoặc mất mạng | Giả lập mất kết nối API AI | Tự động fallback sang Bộ luật an toàn nội bộ | Fallback mượt mà, trả về kết quả an toàn không sập web | **ĐẠT** | Bộ đệm try/catch và timeout 10 giây. |
-| **11** | Giao diện trên điện thoại | Kiểm tra responsive và cỡ chữ | Thân thiện người già, responsive 100%, có nút A+/A++ | Giao diện co giãn chuẩn, có đọc giọng nói và tương phản cao | **ĐẠT** | Đạt chuẩn thiết kế Mobile-First. |
+| **11** | Giao diện trên điện thoại | Kiểm tra responsive và cỡ chữ | Thân thiện người già, responsive 100%, nút tăng/giảm 4px | Giao diện co giãn chuẩn, đọc giọng nói và chế độ sáng/tối | **ĐẠT** | Đạt chuẩn thiết kế Mobile-First. |
 | **12** | Kiểm tra liên tiếp | Bấm "Kiểm tra tin khác" và dán tin mới | Không bị lưu đè trạng thái giữa 2 lần kiểm tra | Lượt 1: *NGUY HIỂM CAO*, Lượt 2: *CHƯA THẤY DẤU HIỆU RÕ* | **ĐẠT** | Đã reset sạch toàn bộ biến trạng thái DOM. |
 
 ---

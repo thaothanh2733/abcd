@@ -213,18 +213,35 @@ console.log('================================================================\n'
 // Test 11: Sử dụng trên điện thoại (Responsive & Accessibility)
 // -------------------------------------------------------------
 {
-  // Kiểm tra stylesheet chứa media query max-width: 768px và font size scaling
+  // Kiểm tra responsive, điều chỉnh cỡ chữ theo bước và đổi giao diện
   const fs = require('fs');
   const css = fs.readFileSync(__dirname + '/../public/style.css', 'utf-8');
+  const html = fs.readFileSync(__dirname + '/../public/index.html', 'utf-8');
+  const app = fs.readFileSync(__dirname + '/../public/app.js', 'utf-8');
   const hasMobileMedia = css.includes('@media (max-width: 768px)');
-  const hasFontScaling = css.includes('.font-large') && css.includes('.font-xlarge');
+  const hasFontScaling = html.includes('id="fontDecreaseBtn"') &&
+    html.includes('id="fontIncreaseBtn"') &&
+    app.includes('currentFontSize - 4') &&
+    app.includes('currentFontSize + 4');
+  const ttsPosition = html.indexOf('id="ttsBtn"');
+  const actionsPosition = html.indexOf('id="actionsList"');
+  const detailsPosition = html.indexOf('<details class="result-disclosure">');
+  const hasSeniorFriendlyResults = ttsPosition >= 0 &&
+    ttsPosition < actionsPosition &&
+    actionsPosition < detailsPosition &&
+    (html.match(/<details class="result-disclosure">/g) || []).length === 2 &&
+    !html.includes('id="scenarioBadge"') &&
+    !html.includes('id="engineBadge"') &&
+    !html.includes('id="copyBtn"') &&
+    css.includes('.tts-button') &&
+    css.includes('.reset-button');
   const hasThemeToggle = css.includes('.dark-mode');
-  const pass = hasMobileMedia && hasFontScaling && hasThemeToggle;
+  const pass = hasMobileMedia && hasFontScaling && hasSeniorFriendlyResults && hasThemeToggle;
   recordTest(
     11,
     'Sử dụng trên giao diện điện thoại & trợ năng người cao tuổi',
-    'Giao diện tương thích mobile, có nút phóng to chữ A+ A++ và chuyển giao diện sáng/tối',
-    `Mobile CSS: ${hasMobileMedia}, Phóng to chữ: ${hasFontScaling}, Chuyển sáng/tối: ${hasThemeToggle}`,
+    'Giao diện mobile, tăng/giảm chữ 4px, kết quả đúng thứ tự và bỏ kịch bản/nội dung sao chép',
+    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}`,
     pass,
     pass ? 'Đạt tiêu chuẩn UI/UX người cao tuổi' : 'Thiếu responsive hoặc trợ năng'
   );
