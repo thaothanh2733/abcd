@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lá Chắn Người Thân - AI Giúp Nhận Ra Tin Nhắn Lừa Đảo</title>
+  <meta name="description" content="Website ứng dụng AI giúp người cao tuổi và gia đình nhận diện các tin nhắn có dấu hiệu lừa đảo trên không gian mạng. Đơn giản, an toàn, dễ hiểu.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <!-- Thư viện Tesseract OCR tiếng Việt và tiếng Anh chạy trực tiếp trên trình duyệt -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       A. THANH ĐIỀU HƯỚNG (NAVBAR)
+       ========================================================================== -->
+  <header class="navbar" role="banner">
+    <div class="container nav-wrapper">
+      <a href="#home" class="logo" aria-label="Lá Chắn Người Thân - Trang chủ">
+        <div class="logo-icon">🛡️</div>
+        <div class="logo-text">
+          <h1>LÁ CHẮN NGƯỜI THÂN</h1>
+          <span>AI BẢO VỆ GIA ĐÌNH BẠN</span>
+        </div>
+      </a>
+
+      <!-- Menu chính -->
+      <nav aria-label="Điều hướng chính">
+        <ul class="nav-menu" id="navMenu">
+          <li><a href="#home" class="active">Trang chủ</a></li>
+          <li><a href="#checker">Kiểm tra tin nhắn</a></li>
+          <li><a href="#guide">Cách sử dụng</a></li>
+          <li><a href="#knowledge">Kiến thức an toàn</a></li>
+          <li><a href="#support">Kênh hỗ trợ</a></li>
+          <li><a href="#about">Giới thiệu dự án</a></li>
+        </ul>
+      </nav>
+
+      <!-- Nút trợ năng cho người cao tuổi -->
+      <div class="nav-actions">
+        <div class="font-controls" title="Thay đổi cỡ chữ cho dễ đọc" aria-label="Bộ điều chỉnh cỡ chữ">
+          <button class="accessibility-btn" data-font-size="normal" title="Cỡ chữ chuẩn">A</button>
+          <button class="accessibility-btn" data-font-size="large" title="Chữ lớn">A+</button>
+          <button class="accessibility-btn" data-font-size="xlarge" title="Chữ rất lớn">A++</button>
+        </div>
+        <button class="accessibility-btn" id="contrastBtn" title="Chế độ tương phản cao">👁️ Tương phản</button>
+        <button class="accessibility-btn" id="apiSettingsBtn" title="Trạng thái hệ thống và AI">⚙️ AI</button>
+        <button class="mobile-menu-toggle" id="mobileMenuBtn" aria-label="Mở bảng điều hướng">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       B. TRANG CHỦ (HERO SECTION)
+       ========================================================================== -->
+  <section class="hero" id="home">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span>🛡️ Dự án Học sinh THPT vì Cộng đồng</span>
+        </div>
+        <h2 class="hero-title">ĐỪNG ĐỂ TIN NHẮN LẠ ĐÁNH LỪA BẠN</h2>
+        <p class="hero-desc">
+          Chỉ cần chụp ảnh hoặc dán tin nhắn đáng ngờ, <strong>Lá Chắn Người Thân</strong> sẽ giúp bạn nhận diện dấu hiệu lừa đảo, giải thích dễ hiểu và hướng dẫn cách xử lý an toàn nhất.
+        </p>
+        <div class="hero-quote">
+          <span>💬 “Nhận được tin lạ, không ai phải đoán một mình.”</span>
+        </div>
+        <div class="hero-ctas">
+          <a href="#checker" class="btn btn-primary">
+            <span>🛡️ KIỂM TRA TIN NHẮN NGAY</span>
+          </a>
+          <a href="#guide" class="btn btn-outline">
+            <span>📖 TÌM HIỂU CÁCH BẢO VỆ BẢN THÂN</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Hình minh họa trực quan -->
+      <div class="hero-visual">
+        <div class="hero-card-preview">
+          <div class="shield-pulse">🛡️</div>
+          <div style="text-align: center; margin-bottom: 0.75rem;">
+            <strong style="font-size: 1.25rem; color: #0f2b48;">Lá Chắn An Toàn Số</strong>
+            <p style="font-size: 0.95rem; color: #475569; margin-top: 0.25rem;">Bảo vệ ông bà, cha mẹ trước các thủ đoạn lừa đảo qua mạng</p>
+          </div>
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 0.75rem; font-size: 0.9rem; color: #166534; display: flex; align-items: center; gap: 0.5rem;">
+            <span>✅</span>
+            <span>Không lưu tin nhắn – Bảo vệ quyền riêng tư 100%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       C. KHU VỰC CHÍNH: KIỂM TRA TIN NHẮN (MESSAGE CHECKER)
+       ========================================================================== -->
+  <section class="section" id="checker">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">CÔNG CỤ PHÂN TÍCH THÔNG MINH</span>
+        <h2 class="section-title">KIỂM TRA TIN NHẮN ĐÁNG NGỜ</h2>
+        <p class="section-desc">
+          Chọn một trong hai cách đơn giản bên dưới: dán nội dung chữ hoặc tải ảnh chụp màn hình từ điện thoại của bạn.
+        </p>
+      </div>
+
+      <div class="checker-card">
+        <!-- Nhắc nhở bảo vệ thông tin cá nhân -->
+        <div class="privacy-reminder" role="note">
+          <span class="privacy-icon">🔒</span>
+          <div>
+            <strong>Lời nhắc bảo vệ thông tin cá nhân:</strong> Vui lòng che thông tin cá nhân như số tài khoản ngân hàng, số điện thoại và mã OTP trước khi kiểm tra. Chúng tôi cam kết <em>không lưu trữ</em> nội dung tin nhắn và ảnh của bạn trên máy chủ.
+          </div>
+        </div>
+
+        <!-- 2 Phương thức nhập dữ liệu độc lập -->
+        <div class="tabs-header" role="tablist">
+          <button class="tab-btn active" data-tab="tab-text" role="tab" aria-selected="true">
+            <span>✍️</span> Phương thức 1: Dán nội dung tin nhắn
+          </button>
+          <button class="tab-btn" data-tab="tab-image" role="tab" aria-selected="false">
+            <span>📷</span> Phương thức 2: Tải ảnh chụp màn hình
+          </button>
+        </div>
+
+        <div class="tab-content">
+          <!-- Tab 1: Dán văn bản -->
+          <div class="tab-pane active" id="tab-text" role="tabpanel">
+            <div class="text-input-wrap">
+              <label for="messageInput" class="sr-only" style="display: none;">Nội dung tin nhắn</label>
+              <textarea
+                id="messageInput"
+                class="message-textarea"
+                placeholder="Dán nội dung tin nhắn bạn vừa nhận được vào đây... (Ví dụ: Tin nhắn tự xưng ngân hàng, công an, thông báo trúng quà hoặc con cháu mượn tiền)"
+                rows="6"
+              ></textarea>
+              <div class="textarea-footer">
+                <span id="charCount">0 ký tự</span>
+                <button type="button" class="btn-text-action" id="clearTextBtn">
+                  <span>🗑️</span> Xóa nội dung
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Tải ảnh chụp màn hình (OCR) -->
+          <div class="tab-pane" id="tab-image" role="tabpanel">
+            <div class="dropzone-area" id="dropzone">
+              <div class="dropzone-icon">📥</div>
+              <div class="dropzone-title">Nhấn vào đây để chọn ảnh hoặc kéo thả ảnh vào khu vực này</div>
+              <div class="dropzone-sub">Hỗ trợ các định dạng: PNG, JPG, JPEG, WEBP (Tối đa 10MB)</div>
+              <input type="file" id="fileInput" class="file-input" accept="image/png, image/jpeg, image/jpg, image/webp">
+            </div>
+
+            <!-- Vùng xem trước ảnh -->
+            <div class="image-preview-container" id="previewContainer">
+              <div class="image-preview-header">
+                <span>📷 Ảnh chụp màn hình đã chọn:</span>
+                <button type="button" class="btn-text-action" id="removeImgBtn">
+                  <span>❌</span> Xóa ảnh và chọn lại
+                </button>
+              </div>
+              <div class="preview-img-wrapper">
+                <img id="previewImg" class="preview-img" alt="Ảnh chụp màn hình tin nhắn người dùng tải lên">
+              </div>
+
+              <!-- Thanh tiến trình đọc chữ OCR -->
+              <div class="ocr-progress-box" id="ocrProgressBox">
+                <div style="font-weight: 700; color: #1e40af;" id="ocrProgressText">Đang nhận diện chữ trong ảnh chụp màn hình: 0%...</div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" id="ocrProgressBar"></div>
+                </div>
+                <small style="color: #475569;">Trí tuệ nhân tạo OCR đang trích xuất văn bản từ hình ảnh để phân tích...</small>
+              </div>
+
+              <!-- Kết quả chữ đọc được từ ảnh -->
+              <div class="ocr-result-box" id="ocrResultBox">
+                <div class="ocr-result-title">
+                  <span>📝</span> Chữ trích xuất được từ ảnh (bạn có thể kiểm tra và sửa lại nếu cần):
+                </div>
+                <textarea id="ocrResultText" class="message-textarea" rows="4" style="min-height: 110px;" readonly></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mẫu thử nghiệm nhanh (Dành cho trình diễn thực tế và kiểm thử) -->
+          <div class="sample-presets">
+            <div class="sample-title">
+              <span>💡</span> Bác/Cô/Chú hoặc Thầy Cô có thể bấm thử nhanh các tình huống thực tế:
+            </div>
+            <div class="sample-buttons">
+              <button type="button" class="btn-sample" data-sample="bank">🏦 Ngân hàng đòi OTP</button>
+              <button type="button" class="btn-sample" data-sample="police">👮 Công an dọa bắt giữ</button>
+              <button type="button" class="btn-sample" data-sample="prize">🎁 Trúng xe SH nộp phí</button>
+              <button type="button" class="btn-sample" data-sample="relative">👨‍👩‍👧 Cháu mượn tiền gấp</button>
+              <button type="button" class="btn-sample" data-sample="job">💼 Việc làm Shopee nạp tiền</button>
+              <button type="button" class="btn-sample" data-sample="safe">✅ Tin nhắn an toàn mẫu</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nút hành động chính -->
+        <div class="action-area">
+          <button type="button" id="analyzeBtn" class="btn-analyze">
+            <span>🛡️</span> PHÂN TÍCH TIN NHẮN
+          </button>
+        </div>
+      </div>
+
+      <!-- Trạng thái đang tải (Loading Spinner) -->
+      <div class="loading-box" id="loadingBox" role="status" aria-live="polite">
+        <div class="spinner"></div>
+        <div class="loading-text">Lá Chắn Người Thân đang kiểm tra tin nhắn của bạn...</div>
+        <div class="loading-sub">Hệ thống đang đối chiếu dấu hiệu nhận diện, áp dụng luật bảo vệ và phân tích nguy cơ.</div>
+      </div>
+
+      <!-- ==========================================================================
+           D. KHU VỰC HIỂN THỊ KẾT QUẢ PHÂN TÍCH (ANALYSIS RESULTS)
+           ========================================================================== -->
+      <div class="result-card" id="resultCard" role="region" aria-label="Kết quả phân tích tin nhắn">
+        <!-- Banner đỉnh: Mức độ cảnh báo & Kịch bản -->
+        <div class="result-banner" id="resultBanner">
+          <div class="banner-left">
+            <div class="alert-icon-big" id="alertLevelIcon">🚨</div>
+            <div class="banner-title-wrap">
+              <h2>MỨC ĐỘ CẢNH BÁO</h2>
+              <div class="banner-level-text" id="alertLevelText">NGUY HIỂM CAO</div>
+            </div>
+          </div>
+          <div class="banner-badges">
+            <div class="scenario-badge" id="scenarioBadge">
+              <span>📋 Kịch bản:</span> <strong>Giả danh ngân hàng</strong>
+            </div>
+            <div class="engine-badge" id="engineBadge">
+              🤖 Phân tích bởi AI Gemini + Lớp luật cứng
+            </div>
+          </div>
+        </div>
+
+        <!-- Thân kết quả -->
+        <div class="result-body">
+          <!-- 1. Dấu hiệu nhận biết -->
+          <div class="result-section">
+            <h3 class="result-heading">
+              <span>🔍</span> DẤU HIỆU ĐÁNG NGỜ PHÁT HIỆN ĐƯỢC
+            </h3>
+            <ul class="detected-list" id="detectedList">
+              <!-- Render động -->
+            </ul>
+          </div>
+
+          <!-- 2. Vì sao tin nhắn đáng ngờ? -->
+          <div class="result-section">
+            <h3 class="result-heading">
+              <span>💡</span> VÌ SAO TIN NHẮN ĐÁNG NGỜ?
+            </h3>
+            <div class="result-explanation-text" id="explanationText">
+              <!-- Render động -->
+            </div>
+          </div>
+
+          <!-- 3. Những việc nên làm -->
+          <div class="result-section">
+            <h3 class="result-heading">
+              <span>🛡️</span> NHỮNG VIỆC BÁC/CÔ/CHÚ NÊN LÀM NGAY
+            </h3>
+            <div class="actions-list" id="actionsList">
+              <!-- Render động -->
+            </div>
+          </div>
+
+          <!-- 4. Lời nhắc an toàn -->
+          <div class="safety-reminder-box">
+            <div class="safety-reminder-icon">📢</div>
+            <div class="safety-reminder-text" id="safetyReminderText">
+              Đừng vội làm theo yêu cầu trong tin nhắn. Nếu chưa chắc chắn, hãy hỏi người thân hoặc liên hệ trực tiếp với cơ quan, tổ chức qua kênh chính thức.
+            </div>
+          </div>
+
+          <!-- Xem trước thông tin đã che giấu bảo mật -->
+          <div style="margin-top: 1.5rem; padding: 0.85rem 1.25rem; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 10px; font-size: 0.9rem; color: #475569;">
+            <strong>🔒 Thông tin đã được che chắn bảo mật (Privacy Masking):</strong>
+            <p id="sanitizedPreviewText" style="font-family: monospace; margin-top: 0.35rem; color: #0f2b48; word-break: break-all;"></p>
+          </div>
+        </div>
+
+        <!-- Footer của kết quả -->
+        <div class="result-footer">
+          <button type="button" class="btn-tts" id="ttsBtn" title="Đọc toàn bộ kết quả cho người cao tuổi nghe">
+            🔊 <span>Đọc kết quả bằng giọng nói</span>
+          </button>
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <button type="button" class="btn-reset" id="copyBtn" style="background: #0d9488;">
+              📋 <span>Sao chép kết quả gửi người thân</span>
+            </button>
+            <button type="button" class="btn-reset" id="resetBtn">
+              🔄 <span>KIỂM TRA TIN NHẮN KHÁC</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       IV. CÁC KHU VỰC BỔ SUNG: HƯỚNG DẪN SỬ DỤNG
+       ========================================================================== -->
+  <section class="section section-bg" id="guide">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">ĐƠN GIẢN VÀ DỄ DÀNG</span>
+        <h2 class="section-title">HƯỚNG DẪN SỬ DỤNG TRONG 3 BƯỚC</h2>
+        <p class="section-desc">
+          Được thiết kế tối giản để người cao tuổi có thể tự thao tác hoặc cùng con cháu kiểm tra mọi lúc mọi nơi.
+        </p>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <div class="step-icon">📱</div>
+          <h3>Chụp ảnh hoặc dán tin</h3>
+          <p>Dán đoạn tin nhắn đáng ngờ vào ô văn bản, hoặc chọn ảnh chụp màn hình tin nhắn từ điện thoại của bạn.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <div class="step-icon">🤖</div>
+          <h3>Nhấn "Phân tích tin nhắn"</h3>
+          <p>Lá Chắn Người Thân sẽ dùng AI và bộ luật cứng để quét các bẫy tâm lý, liên kết lạ và dấu hiệu lừa tiền.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <div class="step-icon">🛡️</div>
+          <h3>Xem cảnh báo & hành động</h3>
+          <p>Xem mức độ cảnh báo (Đỏ/Cam/Xanh), nghe giọng đọc giải thích dễ hiểu và làm theo những việc được khuyên.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       IV.2. KIẾN THỨC AN TOÀN TRÊN KHÔNG GIAN MẠNG
+       ========================================================================== -->
+  <section class="section" id="knowledge">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">CẨM NANG PHÒNG TRÁNH</span>
+        <h2 class="section-title">5 NHÓM LỪA ĐẢO PHỔ BIẾN CẦN BIẾT</h2>
+        <p class="section-desc">
+          Trang bị kiến thức nền tảng giúp người cao tuổi và gia đình luôn chủ động nhận diện kẻ gian.
+        </p>
+      </div>
+
+      <div class="knowledge-grid">
+        <!-- Thẻ 1: Ngân hàng -->
+        <article class="knowledge-card">
+          <div class="knowledge-icon">🏦</div>
+          <h3>1. Giả danh Ngân hàng</h3>
+          <p>Kẻ gian gửi tin nhắn báo tài khoản bị khóa, biến động số dư lớn hoặc nâng cấp sinh trắc học, kèm theo một đường link lạ ép đăng nhập để chiếm đoạt tài khoản.</p>
+          <div class="knowledge-tip">
+            💡 <strong>Quy tắc vàng:</strong> Ngân hàng không bao giờ gửi link lạ bắt đăng nhập lại mật khẩu hay đòi mã OTP.
+          </div>
+        </article>
+
+        <!-- Thẻ 2: Công an -->
+        <article class="knowledge-card">
+          <div class="knowledge-icon">👮</div>
+          <h3>2. Giả danh Công an / Cơ quan chức năng</h3>
+          <p>Đe dọa bạn liên quan đến đường dây rửa tiền, vi phạm giao thông, gửi "lệnh bắt qua tin nhắn" và ép chuyển tiền vào tài khoản để "chứng minh trong sạch".</p>
+          <div class="knowledge-tip">
+            💡 <strong>Quy tắc vàng:</strong> Công an chỉ làm việc trực tiếp tại trụ sở bằng giấy mời bằng văn bản, không bao giờ đòi chuyển tiền.
+          </div>
+        </article>
+
+        <!-- Thẻ 3: Trúng thưởng -->
+        <article class="knowledge-card">
+          <div class="knowledge-icon">🎁</div>
+          <h3>3. Trúng thưởng / Nhận quà tri ân</h3>
+          <p>Thông báo số điện thoại trúng xe máy SH, sổ tiết kiệm hoặc quà trị giá hàng chục triệu, nhưng yêu cầu nộp trước tiền phí vận chuyển hay lệ phí làm hồ sơ.</p>
+          <div class="knowledge-tip">
+            💡 <strong>Quy tắc vàng:</strong> Không tham gia quay thưởng thì không bao giờ trúng. Không chuyển tiền cọc cho người lạ.
+          </div>
+        </article>
+
+        <!-- Thẻ 4: Người quen mượn tiền -->
+        <article class="knowledge-card">
+          <div class="knowledge-icon">👨‍👩‍👧</div>
+          <h3>4. Giả danh con cháu mượn tiền gấp</h3>
+          <p>Chiếm đoạt tài khoản Zalo, Facebook hoặc dùng số lạ nhắn xưng là con cháu đang cấp cứu, kẹt xe, cần tiền đóng học phí và nhờ chuyển khoản vào tài khoản người khác.</p>
+          <div class="knowledge-tip">
+            💡 <strong>Quy tắc vàng:</strong> Luôn gọi điện trực tiếp vào số quen thuộc cũ để nghe giọng trước khi chuyển một đồng nào.
+          </div>
+        </article>
+
+        <!-- Thẻ 5: Việc làm online -->
+        <article class="knowledge-card">
+          <div class="knowledge-icon">💼</div>
+          <h3>5. Việc làm hoặc đầu tư online</h3>
+          <p>Dụ dỗ việc nhẹ lương cao, ngồi tại nhà thả tim Tiktok, giật đơn Shopee hoặc đầu tư sàn tiền ảo sinh lời 30%/ngày, ép nạp tiền làm nhiệm vụ rồi chiếm đoạt.</p>
+          <div class="knowledge-tip">
+            💡 <strong>Quy tắc vàng:</strong> Không có công việc nào vừa dễ dàng vừa thu nhập cao trên mạng. Tuyệt đối không nạp tiền làm nhiệm vụ.
+          </div>
+        </article>
+
+        <!-- Thẻ 6: Nguyên tắc OTP -->
+        <article class="knowledge-card" style="border-color: #fca5a5; background: #fff5f5;">
+          <div class="knowledge-icon" style="background: #fee2e2; color: #dc2626;">🔑</div>
+          <h3 style="color: #991b1b;">Vì sao KHÔNG ĐƯỢC chia sẻ mã OTP?</h3>
+          <p style="color: #7f1d1d;">Mã OTP chính là chìa khóa mở két sắt tiền của bạn. Một khi kẻ lừa đảo có được mã OTP, chúng có thể rút sạch toàn bộ số tiền tiết kiệm trong nháy mắt.</p>
+          <div class="knowledge-tip" style="border-color: #dc2626; color: #991b1b;">
+            ⚠️ <strong>Tuyệt đối:</strong> Nhân viên ngân hàng thật không bao giờ có quyền hỏi mã OTP của khách hàng.
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       IV.3. KÊNH HỖ TRỢ CHÍNH THỨC
+       ========================================================================== -->
+  <section class="section section-bg" id="support">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-badge">ĐỊA CHỈ TIN CẬY</span>
+        <h2 class="section-title">KÊNH HỖ TRỢ CHÍNH THỨC KHI GẶP LỪA ĐẢO</h2>
+        <p class="section-desc">
+          Khi phát hiện dấu hiệu lừa đảo, hãy liên hệ ngay với các cơ quan quản lý Nhà nước và đơn vị có thẩm quyền theo kênh chính thức bên dưới:
+        </p>
+      </div>
+
+      <div class="support-grid">
+        <div class="support-box">
+          <div style="font-size: 2.2rem;">📞</div>
+          <h3>Tổng đài tiếp nhận phản ánh cuộc gọi & tin nhắn rác, lừa đảo</h3>
+          <span class="support-number">156 / 5656</span>
+          <p>Tổng đài chính thức của Bộ Thông tin & Truyền thông tiếp nhận hoàn toàn miễn phí.</p>
+        </div>
+
+        <div class="support-box">
+          <div style="font-size: 2.2rem;">🏦</div>
+          <h3>Đường dây nóng Ngân hàng của bạn</h3>
+          <span class="support-number" style="font-size: 1.6rem; color: #0284c7;">Mặt sau thẻ ATM</span>
+          <p>Xem số hotline chính thức in trực tiếp ở mặt sau thẻ ATM của bạn để yêu cầu khóa thẻ khẩn cấp.</p>
+        </div>
+
+        <div class="support-box">
+          <div style="font-size: 2.2rem;">🏛️</div>
+          <h3>Cơ quan Công an địa phương</h3>
+          <span class="support-number" style="font-size: 1.6rem; color: #16a34a;">Trụ sở Công an Phường/Xã</span>
+          <p>Đến trực tiếp trụ sở Công an phường, xã gần nhất nơi cư trú để được hỗ trợ và lập biên bản giải quyết.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       IV.4. GIỚI THIỆU DỰ ÁN
+       ========================================================================== -->
+  <section class="section" id="about">
+    <div class="container">
+      <div class="about-box">
+        <div class="about-content">
+          <h3>DỰ ÁN: LÁ CHẮN NGƯỜI THÂN</h3>
+          <p>
+            <strong>Lá Chắn Người Thân</strong> là dự án ứng dụng trí tuệ nhân tạo của nhóm học sinh THPT nhằm hỗ trợ người cao tuổi nhận diện các dấu hiệu lừa đảo qua tin nhắn. Công cụ giúp người dùng hiểu rõ nguy cơ và biết cách xử lý thay vì phải tự phán đoán trong lo âu.
+          </p>
+          <p>
+            Dự án ra đời từ chính sự thấu hiểu tình thương dành cho ông bà, cha mẹ — những người ít tiếp xúc với các thủ đoạn công nghệ cao và là mục tiêu hàng đầu của các nhóm tội phạm lừa đảo trực tuyến.
+          </p>
+
+          <div style="margin-top: 1.5rem;">
+            <strong style="color: #99f6e4;">Đối tượng hưởng lợi của dự án:</strong>
+            <div class="beneficiaries-list">
+              <span class="beneficiary-tag">👵 Người cao tuổi sử dụng điện thoại</span>
+              <span class="beneficiary-tag">👨‍👩‍👧 Con cháu và người thân trong gia đình</span>
+              <span class="beneficiary-tag">🌐 Cộng đồng người dùng Internet Việt Nam</span>
+            </div>
+          </div>
+
+          <div class="about-quote">
+            “Công nghệ không thay thế sự cảnh giác, nhưng có thể giúp chúng ta đưa ra quyết định an toàn hơn.”
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       V. CHÂN TRANG (FOOTER)
+       ========================================================================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h4>🛡️ LÁ CHẮN NGƯỜI THÂN</h4>
+          <p>Website hỗ trợ người cao tuổi phòng tránh lừa đảo trực tuyến, bắt đầu từ từng tin nhắn hàng ngày.</p>
+          <p style="margin-top: 0.5rem; color: #5eead4; font-weight: 600;">“Nhận được tin lạ, không ai phải đoán một mình.”</p>
+        </div>
+
+        <div class="footer-col">
+          <h5>Liên kết nhanh</h5>
+          <ul>
+            <li><a href="#home">Trang chủ</a></li>
+            <li><a href="#checker">Kiểm tra tin nhắn</a></li>
+            <li><a href="#guide">Hướng dẫn 3 bước</a></li>
+            <li><a href="#knowledge">Kiến thức phòng ngừa</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h5>Cam kết bảo mật</h5>
+          <ul>
+            <li>🔒 Không lưu tin nhắn</li>
+            <li>🖼️ Không lưu ảnh chụp</li>
+            <li>🔑 Tự động che mã OTP</li>
+            <li>⚡ Hoàn toàn phi lợi nhuận</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2026 Dự án học sinh THPT "Lá Chắn Người Thân" - Đổi mới trong học tập, kiến tạo vì cộng đồng.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       MODAL CẤU HÌNH API AI (TRANSPARENT SETTINGS)
+       ========================================================================== -->
+  <div class="modal-overlay" id="apiModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">⚙️ Cấu hình Trí tuệ Nhân tạo (AI)</h3>
+        <button class="modal-close" id="closeModalBtn" aria-label="Đóng cửa sổ">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="systemStatusText" style="padding: 0.85rem; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 1rem;">
+          Đang kiểm tra kết nối...
+        </p>
+
+        <label for="apiKeyInput" style="font-weight: 700; color: #0f2b48;">Nhập Google Gemini API Key (Tùy chọn):</label>
+        <input type="password" id="apiKeyInput" class="api-input" placeholder="Dán Gemini API Key của bạn vào đây...">
+        <small style="color: #64748b; display: block; margin-top: -0.25rem; margin-bottom: 1rem;">
+          Khóa này chỉ dùng trong phiên làm việc hiện tại và không được lưu công khai. Nếu để trống, hệ thống sẽ tự động phân tích bằng Bộ luật an toàn nội bộ (Rule Engine).
+        </small>
+
+        <button type="button" id="saveApiKeyBtn" class="btn btn-primary" style="width: 100%; padding: 0.75rem;">
+          💾 Lưu cấu hình AI cho phiên này
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
