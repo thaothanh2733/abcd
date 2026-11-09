@@ -218,6 +218,7 @@ console.log('================================================================\n'
   const css = fs.readFileSync(__dirname + '/../public/style.css', 'utf-8');
   const html = fs.readFileSync(__dirname + '/../public/index.html', 'utf-8');
   const app = fs.readFileSync(__dirname + '/../public/app.js', 'utf-8');
+  const historyStore = fs.readFileSync(__dirname + '/../public/history.js', 'utf-8');
   const hasMobileMedia = css.includes('@media (max-width: 768px)');
   const hasFontScaling = html.includes('id="fontDecreaseBtn"') &&
     html.includes('id="fontIncreaseBtn"') &&
@@ -247,13 +248,20 @@ console.log('================================================================\n'
     css.includes('body.dark-mode .textarea-footer') &&
     css.includes('body.dark-mode .upload-description') &&
     css.includes('body.dark-mode .section-kicker');
+  const hasHistorySidebar = html.includes('id="historySidebar"') &&
+    html.includes('id="newCheckBtn"') &&
+    html.includes('id="historyList"') &&
+    html.includes('id="clearHistoryBtn"') &&
+    historyStore.includes('MAX_ITEMS = 15') &&
+    app.includes('window.localStorage');
   const pass = hasMobileMedia && hasFontScaling && hasSeniorFriendlyResults &&
-    hasThemeToggle && hasDarkPalette && hasDarkModeFocus && hasReadableDarkHelpers;
+    hasThemeToggle && hasDarkPalette && hasDarkModeFocus && hasReadableDarkHelpers &&
+    hasHistorySidebar;
   recordTest(
     11,
     'Sử dụng trên giao diện điện thoại & trợ năng người cao tuổi',
     'Giao diện mobile, tăng/giảm chữ 4px, kết quả đúng thứ tự và bỏ kịch bản/nội dung sao chép',
-    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}, Bảng màu tối: ${hasDarkPalette}, Focus rõ: ${hasDarkModeFocus}, Chữ phụ dễ đọc: ${hasReadableDarkHelpers}`,
+    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}, Bảng màu tối: ${hasDarkPalette}, Focus rõ: ${hasDarkModeFocus}, Chữ phụ dễ đọc: ${hasReadableDarkHelpers}, Sidebar lịch sử: ${hasHistorySidebar}`,
     pass,
     pass ? 'Đạt tiêu chuẩn UI/UX người cao tuổi' : 'Thiếu responsive hoặc trợ năng'
   );

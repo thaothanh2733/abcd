@@ -10,6 +10,27 @@
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
+  <button class="sidebar-menu-button" type="button" id="sidebarMenuBtn" aria-label="Mở lịch sử kiểm tra" aria-expanded="false" aria-controls="historySidebar">☰</button>
+  <div class="sidebar-backdrop" id="sidebarBackdrop" hidden></div>
+  <aside class="history-sidebar" id="historySidebar" aria-label="Lịch sử kiểm tra tin nhắn">
+    <div class="sidebar-header">
+      <h2 class="sidebar-title">Lịch sử kiểm tra</h2>
+      <button class="sidebar-collapse-button" type="button" id="sidebarCollapseBtn" aria-label="Thu gọn thanh lịch sử" aria-expanded="true">◀</button>
+      <button class="sidebar-close-button" type="button" id="sidebarCloseBtn" aria-label="Đóng lịch sử">×</button>
+    </div>
+    <button class="new-check-button" type="button" id="newCheckBtn">
+      <span class="sidebar-action-icon" aria-hidden="true">＋</span>
+      <span class="sidebar-action-label">Kiểm tra tin mới</span>
+    </button>
+    <p class="history-storage-note">Lịch sử chỉ lưu trên thiết bị này.</p>
+    <p class="history-status" id="historyStatus" role="status" aria-live="polite"></p>
+    <div class="history-list" id="historyList" role="list" aria-label="Các tin đã kiểm tra gần đây"></div>
+    <button class="clear-history-button" type="button" id="clearHistoryBtn">
+      <span class="sidebar-action-icon" aria-hidden="true">⌫</span>
+      <span class="sidebar-action-label">Xóa toàn bộ lịch sử</span>
+    </button>
+  </aside>
+
   <div class="floating-tools" role="group" aria-label="Cài đặt dễ đọc">
     <button class="glass-control font-step-control" type="button" id="fontDecreaseBtn" aria-label="Giảm cỡ chữ 4 pixel">−</button>
     <span class="font-size-indicator" id="fontSizeIndicator" aria-live="polite">A</span>
@@ -117,6 +138,7 @@
   </main>
 
   <script src="ocrValidation.js"></script>
+  <script src="history.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

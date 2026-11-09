@@ -47,9 +47,19 @@ const fontDecreaseBtn = document.getElementById('fontDecreaseBtn');
 const fontIncreaseBtn = document.getElementById('fontIncreaseBtn');
 const fontSizeIndicator = document.getElementById('fontSizeIndicator');
 const themeBtn = document.getElementById('contrastBtn');
+const historyList = document.getElementById('historyList');
+const historyStatus = document.getElementById('historyStatus');
+const sidebarMenuBtn = document.getElementById('sidebarMenuBtn');
+const sidebarCollapseBtn = document.getElementById('sidebarCollapseBtn');
+const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+const newCheckBtn = document.getElementById('newCheckBtn');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
 const MIN_FONT_SIZE = 15;
 const MAX_FONT_SIZE = 31;
 let currentFontSize = 19;
+let historyItems = [];
+let currentHistoryId = null;
 
 // ==========================================================================
 // 3. LOGIC LUẬT CỨNG PHÍA CLIENT (Hỗ trợ chạy độc lập không cần backend)
@@ -474,13 +484,13 @@ async function handleAnalyze() {
     }
 
     // Hiển thị kết quả
-    renderResult(analysisResult);
+    renderResult(analysisResult, { historyText: content });
   } catch (err) {
     console.warn('Lỗi phân tích mạng, chuyển sang phân tích an toàn nội bộ:', err);
     // Tự động chuyển fallback an toàn
     const fallbackResult = clientAnalyzeOffline(content);
     fallbackResult.fallback_notice = 'Đã tự động chuyển sang chế độ phân tích quy tắc an toàn nội bộ.';
-    renderResult(fallbackResult);
+    renderResult(fallbackResult, { historyText: content });
   } finally {
     loadingBox.style.display = 'none';
     analyzeBtn.disabled = false;
@@ -490,7 +500,7 @@ async function handleAnalyze() {
 // ==========================================================================
 // 8. KẾT XUẤT KẾT QUẢ PHÂN TÍCH (RENDER RESULT)
 // ==========================================================================
-function renderResult(data) {
+function renderResult(data, options = {}) {
   // Đặt class mức độ cho card kết quả
   resultCard.className = 'result-card';
   let levelClass = 'level-unclear';
@@ -504,6 +514,9 @@ function renderResult(data) {
   resultCard.classList.add(levelClass);
   resultCard.style.display = 'block';
   resetBtn.style.display = 'inline-flex';
+  resultCard.querySelectorAll('.result-disclosure').forEach((disclosure) => {
+    disclosure.open = false;
+  });
 
   // 1. Mức độ cảnh báo
   alertLevelText.textContent = data.alert_level;
@@ -540,6 +553,10 @@ function renderResult(data) {
 
   // 5. Lời nhắc an toàn
   safetyReminderText.textContent = data.safety_reminder || 'Đừng vội làm theo yêu cầu trong tin nhắn. Nếu chưa chắc chắn, hãy hỏi người thân hoặc liên hệ trực tiếp với cơ quan, tổ chức qua kênh chính thức.';
+
+  if (options.historyText && options.saveHistory !== false) {
+    saveHistoryEntry(options.historyText, data);
+  }
 
   // Cuộn mượt đến bảng kết quả
   resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -616,16 +633,174 @@ function stopSpeaking() {
 
 // Kiểm tra tin nhắn khác
 resetBtn.addEventListener('click', () => {
+  startNewCheck();
+});
+
+function startNewCheck() {
   stopSpeaking();
+  removeImgBtn.click();
   textInput.value = '';
   updateCharCount();
-  removeImgBtn.click();
   resultCard.style.display = 'none';
   resetBtn.style.display = 'none';
+  currentHistoryId = null;
+  updateHistorySelection();
   if (!tabBtns[0].classList.contains('active')) tabBtns[0].click();
+  closeMobileSidebar();
   textInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
   textInput.focus();
+}
+
+function showHistoryError(message) {
+  historyStatus.textContent = message;
+  console.error(message);
+}
+
+function persistHistory() {
+  try {
+    MessageHistory.save(window.localStorage, historyItems);
+    historyStatus.textContent = '';
+  } catch (error) {
+    showHistoryError('Không thể lưu lịch sử trên thiết bị này. Bạn vẫn có thể tiếp tục kiểm tra.');
+  }
+}
+
+function saveHistoryEntry(text, result) {
+  const entry = MessageHistory.createEntry(text, result, new Date());
+  historyItems = [entry, ...historyItems].slice(0, MessageHistory.MAX_ITEMS);
+  currentHistoryId = entry.id;
+  persistHistory();
+  renderHistoryList();
+}
+
+function formatHistoryTime(createdAt) {
+  const date = new Date(createdAt);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(date);
+}
+
+function getHistoryLevel(alertLevel) {
+  if (alertLevel === 'NGUY HIỂM CAO') return { icon: '🔴', label: 'Nguy hiểm cao' };
+  if (alertLevel === 'CÓ DẤU HIỆU ĐÁNG NGỜ') return { icon: '🟠', label: 'Có dấu hiệu đáng ngờ' };
+  return { icon: '🔵', label: 'Chưa thấy dấu hiệu rõ' };
+}
+
+function renderHistoryList() {
+  historyList.replaceChildren();
+
+  if (historyItems.length === 0) {
+    const emptyMessage = document.createElement('p');
+    emptyMessage.className = 'history-empty';
+    emptyMessage.textContent = 'Chưa có tin nhắn nào được kiểm tra.';
+    historyList.appendChild(emptyMessage);
+    return;
+  }
+
+  historyItems.forEach((item) => {
+    const level = getHistoryLevel(item.result.alert_level);
+    const row = document.createElement('div');
+    row.className = 'history-row';
+    row.setAttribute('role', 'listitem');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'history-item';
+    button.setAttribute('aria-label', `${level.label}: ${item.text.slice(0, 100)}. ${formatHistoryTime(item.createdAt)}`);
+    if (item.id === currentHistoryId) button.setAttribute('aria-current', 'true');
+
+    const icon = document.createElement('span');
+    icon.className = 'history-level-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = level.icon;
+
+    const copy = document.createElement('span');
+    copy.className = 'history-item-copy';
+    const excerpt = document.createElement('span');
+    excerpt.className = 'history-excerpt';
+    excerpt.textContent = item.text.replace(/\s+/g, ' ').trim();
+    const time = document.createElement('time');
+    time.className = 'history-time';
+    time.dateTime = item.createdAt;
+    time.textContent = formatHistoryTime(item.createdAt);
+    copy.append(excerpt, time);
+    button.append(icon, copy);
+    button.addEventListener('click', () => restoreHistoryEntry(item));
+    row.appendChild(button);
+    historyList.appendChild(row);
+  });
+}
+
+function updateHistorySelection() {
+  historyList.querySelectorAll('.history-item').forEach((item, index) => {
+    if (historyItems[index] && historyItems[index].id === currentHistoryId) {
+      item.setAttribute('aria-current', 'true');
+    } else {
+      item.removeAttribute('aria-current');
+    }
+  });
+}
+
+function restoreHistoryEntry(item) {
+  stopSpeaking();
+  removeImgBtn.click();
+  currentHistoryId = item.id;
+  textInput.value = item.text;
+  updateCharCount();
+  if (!tabBtns[0].classList.contains('active')) tabBtns[0].click();
+  renderResult(item.result, { saveHistory: false });
+  updateHistorySelection();
+  closeMobileSidebar();
+}
+
+function openMobileSidebar() {
+  document.body.classList.add('sidebar-open');
+  sidebarBackdrop.hidden = false;
+  sidebarMenuBtn.setAttribute('aria-expanded', 'true');
+  sidebarMenuBtn.setAttribute('aria-label', 'Đóng lịch sử kiểm tra');
+}
+
+function closeMobileSidebar() {
+  document.body.classList.remove('sidebar-open');
+  sidebarBackdrop.hidden = true;
+  sidebarMenuBtn.setAttribute('aria-expanded', 'false');
+  sidebarMenuBtn.setAttribute('aria-label', 'Mở lịch sử kiểm tra');
+}
+
+sidebarMenuBtn.addEventListener('click', () => {
+  if (document.body.classList.contains('sidebar-open')) closeMobileSidebar();
+  else openMobileSidebar();
 });
+
+sidebarBackdrop.addEventListener('click', closeMobileSidebar);
+sidebarCloseBtn.addEventListener('click', closeMobileSidebar);
+
+sidebarCollapseBtn.addEventListener('click', () => {
+  const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
+  sidebarCollapseBtn.setAttribute('aria-expanded', String(!isCollapsed));
+  sidebarCollapseBtn.setAttribute('aria-label', isCollapsed ? 'Mở rộng thanh lịch sử' : 'Thu gọn thanh lịch sử');
+});
+
+newCheckBtn.addEventListener('click', startNewCheck);
+
+clearHistoryBtn.addEventListener('click', () => {
+  if (historyItems.length === 0) return;
+  if (!window.confirm('Bạn có chắc muốn xóa toàn bộ lịch sử kiểm tra trên thiết bị này không?')) return;
+
+  historyItems = [];
+  currentHistoryId = null;
+  persistHistory();
+  renderHistoryList();
+});
+
+function initializeHistory() {
+  try {
+    historyItems = MessageHistory.load(window.localStorage);
+    renderHistoryList();
+  } catch (error) {
+    historyItems = [];
+    renderHistoryList();
+    showHistoryError('Không thể đọc lịch sử trên thiết bị này. Các lần kiểm tra hiện tại vẫn hoạt động bình thường.');
+  }
+}
 
 // Cỡ chữ
 function updateFontSize(nextSize) {
@@ -657,4 +832,5 @@ window.addEventListener('DOMContentLoaded', () => {
   updateCharCount();
   resetBtn.style.display = 'none';
   updateFontSize(currentFontSize);
+  initializeHistory();
 });
