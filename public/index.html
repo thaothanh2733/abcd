@@ -65,6 +65,11 @@
           <div class="tab-pane active" id="tab-text" role="tabpanel">
             <label for="messageInput">Nội dung tin nhắn</label>
             <textarea id="messageInput" class="message-textarea" placeholder="Dán tin nhắn vào đây..." rows="5"></textarea>
+            <button type="button" class="glass-button speech-input-button" id="speechInputBtn" aria-pressed="false">
+              🎙️ BẤM ĐỂ NÓI NỘI DUNG TIN
+            </button>
+            <p class="speech-input-status" id="speechInputStatus" role="status" aria-live="polite"></p>
+            <p class="speech-privacy-note">Trình duyệt có thể xử lý giọng nói qua dịch vụ nhận dạng của hãng.</p>
             <div class="textarea-footer">
               <span id="charCount" aria-live="polite">0 ký tự</span>
               <button type="button" class="glass-button secondary-button" id="clearTextBtn">Xóa nội dung</button>
@@ -99,6 +104,7 @@
         </div>
 
         <button type="button" id="analyzeBtn" class="glass-button analyze-button">Kiểm tra tin nhắn</button>
+        <button type="button" id="smsDemoBtn" class="glass-button sms-demo-button">📱 Thử nghiệm mô phỏng: Nhận tin nhắn SMS lạ</button>
       </div>
 
       <div class="loading-box" id="loadingBox" role="status" aria-live="polite">
@@ -114,10 +120,10 @@
               <p class="banner-level-text" id="alertLevelText"></p>
             </div>
           </div>
+          <button type="button" class="glass-button tts-button" id="ttsBtn">🔊 NGHE KẾT QUẢ</button>
         </div>
 
         <div class="result-body">
-          <button type="button" class="glass-button tts-button" id="ttsBtn">Đọc kết quả bằng giọng nói</button>
           <section class="result-section">
             <h3 class="result-heading">Bạn nên làm gì?</h3>
             <ul class="actions-list" id="actionsList"></ul>
@@ -136,6 +142,17 @@
       <button type="button" class="glass-button reset-button" id="resetBtn">Kiểm tra tin nhắn khác</button>
     </section>
   </main>
+
+  <dialog class="sms-demo-dialog" id="smsDemoDialog" aria-labelledby="smsDemoTitle" aria-describedby="smsDemoDescription">
+    <div class="sms-demo-content">
+      <h2 id="smsDemoTitle">🛡️ LÁ CHẮN NGƯỜI THÂN</h2>
+      <p id="smsDemoDescription">Đây là thông báo mô phỏng, website không đọc SMS thật. Bạn có muốn thử kiểm tra một tin nhắn mẫu không?</p>
+      <div class="sms-demo-actions">
+        <button type="button" class="glass-button sms-demo-accept" id="smsDemoAcceptBtn">Có, kiểm tra giúp tôi</button>
+        <button type="button" class="glass-button sms-demo-dismiss" id="smsDemoDismissBtn">Để sau</button>
+      </div>
+    </div>
+  </dialog>
 
   <script src="ocrValidation.js"></script>
   <script src="history.js"></script>

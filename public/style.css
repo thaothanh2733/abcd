@@ -699,6 +699,105 @@ body.dark-mode .clear-history-button {
   opacity: 0.72;
 }
 
+.speech-input-button,
+.sms-demo-button {
+  width: 100%;
+  min-height: 60px;
+  margin-top: 0.8rem;
+  border-radius: 16px;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.speech-input-button {
+  border: 2px solid #087c70;
+  background: #d9f4ed;
+  color: #123d36;
+}
+
+.speech-input-button.is-listening {
+  border-color: #a51d24;
+  background: #a51d24;
+  color: #ffffff;
+  animation: listening-pulse 1.2s ease-in-out infinite;
+}
+
+.speech-input-status,
+.speech-privacy-note {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.speech-input-status:empty {
+  display: none;
+}
+
+.sms-demo-button {
+  border: 2px solid #164a70;
+  background: #e8f4fa;
+  color: #123d58;
+}
+
+.sms-demo-dialog {
+  width: min(92vw, 620px);
+  padding: 0;
+  border: 2px solid #164a70;
+  border-radius: 22px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.4);
+}
+
+.sms-demo-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(3px);
+}
+
+.sms-demo-content {
+  padding: clamp(1.25rem, 5vw, 2rem);
+}
+
+.sms-demo-content h2 {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+}
+
+.sms-demo-content p {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.sms-demo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.sms-demo-actions .glass-button {
+  min-height: 56px;
+  flex: 1 1 210px;
+  font-weight: 800;
+}
+
+.sms-demo-accept {
+  border: 2px solid #4ade80;
+  background: #22c55e;
+  color: #121212;
+}
+
+.sms-demo-dismiss {
+  border: 2px solid #64748b;
+}
+
+@keyframes listening-pulse {
+  50% {
+    box-shadow: 0 0 0 7px rgba(165, 29, 36, 0.2);
+  }
+}
+
 .loading-box {
   display: none;
   padding: 1.5rem 1rem;
@@ -747,6 +846,7 @@ body.dark-mode .clear-history-button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 1rem;
   padding: 1.25rem clamp(1rem, 4vw, 1.75rem);
   color: #ffffff;
@@ -782,15 +882,16 @@ body.dark-mode .clear-history-button {
 }
 
 .tts-button {
-  width: 100%;
-  min-height: 64px;
-  margin-bottom: 1.25rem;
+  min-width: 220px;
+  min-height: 58px;
+  margin: 0;
   border-radius: 18px;
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(226, 238, 245, 0.78)),
     #edf4f8;
   color: #123d58;
-  font-size: 1.08rem;
+  font-size: 1rem;
+  font-weight: 900;
   box-shadow:
     inset 0 1px 0 #ffffff,
     inset 0 -1px 0 rgba(78, 99, 114, 0.15),
@@ -996,6 +1097,37 @@ body.dark-mode .tts-button {
 body.dark-mode .tts-button.speaking {
   background: #7dd3fc;
   box-shadow: inset 0 0 0 2px #075985;
+}
+
+body.dark-mode .speech-input-button,
+body.dark-mode .sms-demo-dismiss {
+  border: 2px solid #94a3b8;
+  background: #242424;
+  color: #ffffff;
+}
+
+body.dark-mode .speech-input-button.is-listening {
+  border-color: #fca5a5;
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+body.dark-mode .sms-demo-button {
+  border: 2px solid #facc15;
+  background: #242424;
+  color: #facc15;
+}
+
+body.dark-mode .sms-demo-dialog {
+  border-color: #38bdf8;
+  background: #1e1e1e;
+  color: #eaeaea;
+}
+
+body.dark-mode .sms-demo-accept {
+  border-color: #4ade80;
+  background: #22c55e;
+  color: #121212;
 }
 
 body.dark-mode .theme-icon-sun {
@@ -1253,6 +1385,10 @@ body.dark-mode textarea:focus-visible {
     gap: 0.4rem;
   }
 
+  .result-banner .tts-button {
+    width: 100%;
+  }
+
 }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -1263,6 +1399,10 @@ body.dark-mode textarea:focus-visible {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     box-shadow: inset 0 0 0 1px #b8c2ca;
+  }
+
+  .sms-demo-dialog::backdrop {
+    backdrop-filter: none;
   }
 
   .analyze-button,

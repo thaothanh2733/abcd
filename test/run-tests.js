@@ -254,14 +254,30 @@ console.log('================================================================\n'
     html.includes('id="clearHistoryBtn"') &&
     historyStore.includes('MAX_ITEMS = 15') &&
     app.includes('window.localStorage');
+  const hasVoiceAndSmsAccessibility = html.includes('id="speechInputBtn"') &&
+    html.includes('id="speechInputStatus"') &&
+    html.includes('id="smsDemoBtn"') &&
+    html.includes('<dialog') &&
+    html.includes('id="smsDemoAcceptBtn"') &&
+    html.indexOf('id="alertLevelText"') < html.indexOf('id="ttsBtn"') &&
+    html.indexOf('id="ttsBtn"') < html.indexOf('class="result-body"') &&
+    app.includes('window.SpeechRecognition || window.webkitSpeechRecognition') &&
+    app.includes("recognition.lang = 'vi-VN'") &&
+    app.includes('shouldAnalyzeAfterSpeech') &&
+    app.includes("handleAnalyze({ autoRead: true })") &&
+    app.includes('window.speechSynthesis.pause()') &&
+    app.includes('window.speechSynthesis.resume()') &&
+    css.includes('.speech-input-button.is-listening') &&
+    css.includes('.sms-demo-dialog') &&
+    css.includes('.result-banner .tts-button');
   const pass = hasMobileMedia && hasFontScaling && hasSeniorFriendlyResults &&
     hasThemeToggle && hasDarkPalette && hasDarkModeFocus && hasReadableDarkHelpers &&
-    hasHistorySidebar;
+    hasHistorySidebar && hasVoiceAndSmsAccessibility;
   recordTest(
     11,
     'Sử dụng trên giao diện điện thoại & trợ năng người cao tuổi',
     'Giao diện mobile, tăng/giảm chữ 4px, kết quả đúng thứ tự và bỏ kịch bản/nội dung sao chép',
-    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}, Bảng màu tối: ${hasDarkPalette}, Focus rõ: ${hasDarkModeFocus}, Chữ phụ dễ đọc: ${hasReadableDarkHelpers}, Sidebar lịch sử: ${hasHistorySidebar}`,
+    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}, Bảng màu tối: ${hasDarkPalette}, Focus rõ: ${hasDarkModeFocus}, Chữ phụ dễ đọc: ${hasReadableDarkHelpers}, Sidebar lịch sử: ${hasHistorySidebar}, Giọng nói và SMS demo: ${hasVoiceAndSmsAccessibility}`,
     pass,
     pass ? 'Đạt tiêu chuẩn UI/UX người cao tuổi' : 'Thiếu responsive hoặc trợ năng'
   );
