@@ -283,14 +283,31 @@ console.log('================================================================\n'
     css.includes('.sms-demo-mic-status.is-listening') &&
     css.includes('.sms-demo-followup-actions') &&
     css.includes('.result-banner .tts-button');
+  const resultCardPosition = html.indexOf('id="resultCard"');
+  const shareButtonPosition = html.indexOf('id="shareResultBtn"');
+  const hasPerformanceAndSharing = shareButtonPosition > resultCardPosition &&
+    html.includes('id="shareResultStatus"') &&
+    html.includes('GỬI KẾT QUẢ CHO NGƯỜI THÂN QUA ZALO') &&
+    app.includes('navigator.share') &&
+    app.includes('https://zalo.me/share?text=') &&
+    app.includes('navigator.vibrate([200, 100, 200, 100, 300])') &&
+    app.includes('analysisCooldownUntil = Date.now() + 2500') &&
+    app.includes('analyzeBtn.disabled = isLocked') &&
+    app.includes('1200 / bitmap.width') &&
+    app.includes("canvas.toBlob((blob)") &&
+    app.includes("'image/jpeg', 0.8") &&
+    app.includes("Tesseract.createWorker('vie+eng', 1") &&
+    app.includes('window.addEventListener(\'load\', warmOcrWorker') &&
+    app.includes('ocrRecognitionQueue') &&
+    css.includes('.share-result-button');
   const pass = hasMobileMedia && hasFontScaling && hasSeniorFriendlyResults &&
     hasThemeToggle && hasDarkPalette && hasDarkModeFocus && hasReadableDarkHelpers &&
-    hasHistorySidebar && hasVoiceAndSmsAccessibility;
+    hasHistorySidebar && hasVoiceAndSmsAccessibility && hasPerformanceAndSharing;
   recordTest(
     11,
     'Sử dụng trên giao diện điện thoại & trợ năng người cao tuổi',
     'Giao diện mobile, tăng/giảm chữ 4px, kết quả đúng thứ tự và bỏ kịch bản/nội dung sao chép',
-    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}, Bảng màu tối: ${hasDarkPalette}, Focus rõ: ${hasDarkModeFocus}, Chữ phụ dễ đọc: ${hasReadableDarkHelpers}, Sidebar lịch sử: ${hasHistorySidebar}, Giọng nói và SMS demo: ${hasVoiceAndSmsAccessibility}`,
+    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}, Bảng màu tối: ${hasDarkPalette}, Focus rõ: ${hasDarkModeFocus}, Chữ phụ dễ đọc: ${hasReadableDarkHelpers}, Sidebar lịch sử: ${hasHistorySidebar}, Giọng nói và SMS demo: ${hasVoiceAndSmsAccessibility}, Chia sẻ và hiệu năng: ${hasPerformanceAndSharing}`,
     pass,
     pass ? 'Đạt tiêu chuẩn UI/UX người cao tuổi' : 'Thiếu responsive hoặc trợ năng'
   );

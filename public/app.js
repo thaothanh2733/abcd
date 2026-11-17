@@ -7,6 +7,7 @@
 // KHỞI TẠO BIẾN VÀ ELEMENT DOM
 // ==========================================================================
 let currentFile = null;
+let currentPreviewUrl = null;
 let currentExtractedText = '';
 let isSpeechActive = false;
 let currentUtterance = null;
@@ -50,6 +51,8 @@ const detectedList = document.getElementById('detectedList');
 const actionsList = document.getElementById('actionsList');
 const safetyReminderText = document.getElementById('safetyReminderText');
 const ttsBtn = document.getElementById('ttsBtn');
+const shareResultBtn = document.getElementById('shareResultBtn');
+const shareResultStatus = document.getElementById('shareResultStatus');
 const resetBtn = document.getElementById('resetBtn');
 
 // Accessibility controls
@@ -82,6 +85,14 @@ const MAX_FONT_SIZE = 31;
 let currentFontSize = 19;
 let historyItems = [];
 let currentHistoryId = null;
+let analysisInProgress = false;
+let analysisCooldownUntil = 0;
+let analysisCooldownTimer = null;
+let ocrIsRunning = false;
+let ocrWorker = null;
+let ocrWorkerPromise = null;
+let ocrRecognitionQueue = Promise.resolve();
+let ocrProgressHandler = null;
 
 // ==========================================================================
 // 3. LOGIC LUẬT CỨNG PHÍA CLIENT (Hỗ trợ chạy độc lập không cần backend)
@@ -218,13 +229,34 @@ function setOfflineStatus() {
 // ==========================================================================
 // 5. CHỨC NĂNG OCR TRÍCH XUẤT CHỮ TỪ ẢNH (Tesseract.js)
 // ==========================================================================
-async function prepareImageForOcr(file) {
-  if (typeof createImageBitmap !== 'function') return file;
+async function decodeImageFile(file) {
+  if (typeof createImageBitmap === 'function') return createImageBitmap(file);
 
-  const bitmap = await createImageBitmap(file);
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const image = await new Promise((resolve, reject) => {
+      const element = new Image();
+      element.onload = () => resolve(element);
+      element.onerror = () => reject(new Error('Không thể mở ảnh đã chọn.'));
+      element.src = objectUrl;
+    });
+    return {
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+      draw: (context, width, height) => context.drawImage(image, 0, 0, width, height),
+      close: () => URL.revokeObjectURL(objectUrl)
+    };
+  } catch (error) {
+    URL.revokeObjectURL(objectUrl);
+    throw error;
+  }
+}
+
+async function prepareImageForOcr(file) {
+  const bitmap = await decodeImageFile(file);
   const scale = Math.min(
-    2.5,
-    2800 / bitmap.width,
+    1,
+    1200 / bitmap.width,
     Math.sqrt(8000000 / (bitmap.width * bitmap.height))
   );
   const width = Math.max(1, Math.round(bitmap.width * scale));
@@ -234,39 +266,73 @@ async function prepareImageForOcr(file) {
   canvas.height = height;
 
   try {
-    const context = canvas.getContext('2d', { willReadFrequently: true });
+    const context = canvas.getContext('2d');
     if (!context) throw new Error('Không thể chuẩn bị ảnh để nhận diện chữ.');
 
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = 'high';
-    context.drawImage(bitmap, 0, 0, width, height);
-
-    const image = context.getImageData(0, 0, width, height);
-    for (let index = 0; index < image.data.length; index += 4) {
-      const luminance = Math.round(
-        image.data[index] * 0.299 +
-        image.data[index + 1] * 0.587 +
-        image.data[index + 2] * 0.114
-      );
-      const enhanced = Math.max(0, Math.min(255, (luminance - 128) * 1.12 + 128));
-      image.data[index] = enhanced;
-      image.data[index + 1] = enhanced;
-      image.data[index + 2] = enhanced;
-    }
-    context.putImageData(image, 0, 0);
+    if (typeof bitmap.draw === 'function') bitmap.draw(context, width, height);
+    else context.drawImage(bitmap, 0, 0, width, height);
 
     return await new Promise((resolve, reject) => {
       canvas.toBlob((blob) => {
         if (blob) resolve(blob);
         else reject(new Error('Không thể xử lý ảnh. Vui lòng thử ảnh khác.'));
-      }, 'image/png');
+      }, 'image/jpeg', 0.8);
     });
   } finally {
-    bitmap.close();
+    if (typeof bitmap.close === 'function') bitmap.close();
     canvas.width = 0;
     canvas.height = 0;
   }
 }
+
+function getOcrWorker() {
+  if (ocrWorker) return Promise.resolve(ocrWorker);
+  if (ocrWorkerPromise) return ocrWorkerPromise;
+  if (typeof Tesseract === 'undefined') {
+    return Promise.reject(new Error('Thư viện OCR chưa tải xong, vui lòng đợi vài giây hoặc kiểm tra kết nối mạng.'));
+  }
+
+  ocrWorkerPromise = Tesseract.createWorker('vie+eng', 1, {
+    logger: (message) => {
+      if (message.status === 'recognizing text' && ocrProgressHandler) {
+        const progress = Math.round((message.progress || 0) * 100);
+        ocrProgressBar.style.width = `${progress}%`;
+        ocrProgressText.textContent = `Đang đọc chữ trong ảnh chụp: ${progress}%...`;
+      }
+    }
+  }).then(async (worker) => {
+    await worker.setParameters({ preserve_interword_spaces: '1' });
+    ocrWorker = worker;
+    return worker;
+  }).catch((error) => {
+    ocrWorkerPromise = null;
+    throw error;
+  });
+
+  return ocrWorkerPromise;
+}
+
+function recognizeImage(image) {
+  const recognition = ocrRecognitionQueue.then(async () => {
+    const worker = await getOcrWorker();
+    return worker.recognize(image);
+  });
+  ocrRecognitionQueue = recognition.catch(() => {});
+  return recognition;
+}
+
+function warmOcrWorker() {
+  const schedule = window.requestIdleCallback || ((callback) => window.setTimeout(callback, 0));
+  schedule(() => {
+    getOcrWorker().catch((error) => {
+      console.warn('Không thể khởi động trước worker OCR:', error);
+    });
+  }, { timeout: 2000 });
+}
+
+window.addEventListener('load', warmOcrWorker, { once: true });
 
 async function runOcrOnImage(file) {
   ocrProgressBox.style.display = 'block';
@@ -275,27 +341,14 @@ async function runOcrOnImage(file) {
   ocrErrorMessage.textContent = '';
   ocrProgressBar.style.width = '10%';
   ocrProgressText.textContent = 'Đang chuẩn bị ảnh và tải bộ nhận diện chữ tiếng Việt...';
-  analyzeBtn.disabled = true;
-  let worker;
+  ocrIsRunning = true;
+  refreshAnalyzeButton();
 
   try {
-    if (typeof Tesseract === 'undefined') {
-      throw new Error('Thư viện OCR chưa tải xong, vui lòng đợi vài giây hoặc kiểm tra kết nối mạng.');
-    }
-
     const imageForOcr = await prepareImageForOcr(file);
-    worker = await Tesseract.createWorker('vie+eng', 1, {
-      logger: (m) => {
-        if (m.status === 'recognizing text') {
-          const progress = Math.round((m.progress || 0) * 100);
-          ocrProgressBar.style.width = `${progress}%`;
-          ocrProgressText.textContent = `Đang đọc chữ trong ảnh chụp: ${progress}%...`;
-        }
-      }
-    });
-
-    await worker.setParameters({ preserve_interword_spaces: '1' });
-    const ret = await worker.recognize(imageForOcr);
+    ocrProgressHandler = true;
+    const ret = await recognizeImage(imageForOcr);
+    ocrProgressHandler = null;
 
     const extracted = ret.data.text.trim();
     ocrProgressBox.style.display = 'none';
@@ -322,14 +375,9 @@ async function runOcrOnImage(file) {
     ocrProgressBox.style.display = 'none';
     alert('Không thể đọc chữ tự động: ' + err.message + '\n\nBạn có thể dán nội dung tin nhắn trực tiếp vào ô bên cạnh để kiểm tra ngay.');
   } finally {
-    if (worker) {
-      try {
-        await worker.terminate();
-      } catch (err) {
-        console.warn('Không thể đóng bộ nhận diện OCR:', err);
-      }
-    }
-    analyzeBtn.disabled = false;
+    ocrProgressHandler = null;
+    ocrIsRunning = false;
+    refreshAnalyzeButton();
   }
 }
 
@@ -425,20 +473,21 @@ function handleSelectedImage(file) {
   resultCard.style.display = 'none';
   resetBtn.style.display = 'none';
   updateCharCount();
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    previewImg.src = e.target.result;
-    previewContainer.style.display = 'block';
-    // Tự động chạy OCR
-    runOcrOnImage(file);
-  };
-  reader.readAsDataURL(file);
+  if (currentPreviewUrl) URL.revokeObjectURL(currentPreviewUrl);
+  currentPreviewUrl = URL.createObjectURL(file);
+  previewImg.src = currentPreviewUrl;
+  previewContainer.style.display = 'block';
+  runOcrOnImage(file);
 }
 
 // Xóa ảnh đã chọn
 removeImgBtn.addEventListener('click', () => {
   const removedOcrText = currentExtractedText;
   currentFile = null;
+  if (currentPreviewUrl) {
+    URL.revokeObjectURL(currentPreviewUrl);
+    currentPreviewUrl = null;
+  }
   fileInput.value = '';
   previewImg.src = '';
   previewContainer.style.display = 'none';
@@ -458,7 +507,41 @@ removeImgBtn.addEventListener('click', () => {
 // ==========================================================================
 analyzeBtn.addEventListener('click', () => handleAnalyze());
 
+function refreshAnalyzeButton() {
+  const isCoolingDown = Date.now() < analysisCooldownUntil;
+  const isLocked = analysisInProgress || ocrIsRunning || isCoolingDown;
+  analyzeBtn.disabled = isLocked;
+  smsDemoBtn.disabled = isLocked;
+  analyzeBtn.setAttribute('aria-busy', String(analysisInProgress || ocrIsRunning));
+  analyzeBtn.textContent = isLocked ? 'Đang kiểm tra...' : 'Kiểm tra tin nhắn';
+}
+
+function beginAnalysisAttempt() {
+  if (analysisInProgress || ocrIsRunning || Date.now() < analysisCooldownUntil) return false;
+  analysisInProgress = true;
+  analysisCooldownUntil = Date.now() + 2500;
+  if (analysisCooldownTimer) window.clearTimeout(analysisCooldownTimer);
+  refreshAnalyzeButton();
+  return true;
+}
+
+function finishAnalysisAttempt() {
+  analysisInProgress = false;
+  if (analysisCooldownTimer) window.clearTimeout(analysisCooldownTimer);
+  const remaining = analysisCooldownUntil - Date.now();
+  if (remaining > 0) {
+    analysisCooldownTimer = window.setTimeout(() => {
+      analysisCooldownTimer = null;
+      refreshAnalyzeButton();
+    }, remaining);
+  } else {
+    analysisCooldownTimer = null;
+  }
+  refreshAnalyzeButton();
+}
+
 async function handleAnalyze(options = {}) {
+  if (!beginAnalysisAttempt()) return;
   if (!options.voiceDemo) cancelSmsVoiceFlow();
   cancelSpeechInput();
   const content = textInput.value.trim();
@@ -467,19 +550,21 @@ async function handleAnalyze(options = {}) {
   if (!content) {
     alert('Bạn vui lòng dán nội dung tin nhắn hoặc tải ảnh có chứa chữ để Lá Chắn Người Thân kiểm tra giúp nhé!');
     textInput.focus();
+    finishAnalysisAttempt();
     return;
   }
 
   // Kiểm tra độ dài tối thiểu
   if (content.length < 4) {
     alert('Nội dung quá ngắn để nhận diện chính xác. Bạn vui lòng nhập đầy đủ câu chữ trong tin nhắn nhé.');
+    finishAnalysisAttempt();
     return;
   }
 
   // 1. Hiển thị trạng thái đang xử lý
   loadingBox.style.display = 'block';
   resultCard.style.display = 'none';
-  analyzeBtn.disabled = true;
+  refreshAnalyzeButton();
   loadingBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
   // Dừng giọng nói cũ nếu đang phát
@@ -525,7 +610,7 @@ async function handleAnalyze(options = {}) {
     });
   } finally {
     loadingBox.style.display = 'none';
-    analyzeBtn.disabled = false;
+    finishAnalysisAttempt();
   }
 }
 
@@ -552,6 +637,7 @@ function renderResult(data, options = {}) {
 
   // 1. Mức độ cảnh báo
   alertLevelText.textContent = data.alert_level;
+  shareResultStatus.textContent = '';
 
   // 2. Vì sao tin nhắn đáng ngờ?
   explanationText.textContent = data.explanation;
@@ -590,6 +676,16 @@ function renderResult(data, options = {}) {
     saveHistoryEntry(options.historyText, data);
   }
 
+  if (data.alert_level === 'NGUY HIỂM CAO' && options.historyText) {
+    try {
+      if (typeof navigator.vibrate === 'function') {
+        navigator.vibrate([200, 100, 200, 100, 300]);
+      }
+    } catch (error) {
+      console.warn('Thiết bị không hỗ trợ rung cảnh báo:', error);
+    }
+  }
+
   if (options.voiceDemo) {
     window.setTimeout(() => speakSmsDemoAlert(true), 150);
   } else if (options.autoRead) {
@@ -599,6 +695,36 @@ function renderResult(data, options = {}) {
   // Cuộn mượt đến bảng kết quả
   resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
+shareResultBtn.addEventListener('click', async () => {
+  const message = `Tôi vừa kiểm tra một tin nhắn đáng ngờ và nhận được cảnh báo: ${alertLevelText.textContent}. Bạn hãy xem giúp tôi với nhé!`;
+  shareResultBtn.disabled = true;
+  shareResultStatus.textContent = 'Đang mở lựa chọn chia sẻ.';
+
+  try {
+    if (typeof navigator.share === 'function') {
+      await navigator.share({ text: message });
+      shareResultStatus.textContent = 'Đã gửi kết quả chia sẻ.';
+      return;
+    }
+
+    const shareUrl = `https://zalo.me/share?text=${encodeURIComponent(message)}`;
+    const shareWindow = window.open(shareUrl, '_blank');
+    if (shareWindow) shareWindow.opener = null;
+    shareResultStatus.textContent = shareWindow
+      ? 'Đã mở Zalo để chia sẻ kết quả.'
+      : 'Trình duyệt đã chặn cửa sổ Zalo. Bạn hãy cho phép cửa sổ bật lên rồi thử lại.';
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      shareResultStatus.textContent = 'Bạn đã đóng lựa chọn chia sẻ.';
+    } else {
+      console.error('Không thể chia sẻ kết quả:', error);
+      shareResultStatus.textContent = 'Không thể chia sẻ lúc này. Bạn hãy thử lại sau.';
+    }
+  } finally {
+    shareResultBtn.disabled = false;
+  }
+});
 
 // ==========================================================================
 // 9. ĐỌC KẾT QUẢ BẰNG GIỌNG NÓI (TEXT-TO-SPEECH CHO NGƯỜI CAO TUỔI)

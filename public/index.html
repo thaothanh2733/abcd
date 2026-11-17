@@ -7,7 +7,7 @@
   <meta name="description" content="Dán tin nhắn hoặc tải ảnh để kiểm tra dấu hiệu lừa đảo.">
   <title>Lá Chắn Người Thân - Kiểm tra tin nhắn</title>
   <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
   <button class="sidebar-menu-button" type="button" id="sidebarMenuBtn" aria-label="Mở lịch sử kiểm tra" aria-expanded="false" aria-controls="historySidebar">☰</button>
@@ -133,6 +133,10 @@
             <h3 class="result-heading">Bạn nên làm gì?</h3>
             <ul class="actions-list" id="actionsList"></ul>
           </section>
+          <div class="result-share-section">
+            <button type="button" class="glass-button share-result-button" id="shareResultBtn">📲 GỬI KẾT QUẢ CHO NGƯỜI THÂN QUA ZALO</button>
+            <p class="share-result-status" id="shareResultStatus" role="status" aria-live="polite"></p>
+          </div>
           <details class="result-disclosure">
             <summary>Dấu hiệu nhận biết</summary>
             <ul class="detected-list" id="detectedList"></ul>
