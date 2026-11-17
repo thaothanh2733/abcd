@@ -359,6 +359,7 @@ async function runOcrOnImage(file) {
     if (!isUsableOcrText(extracted, ret.data.confidence)) {
       currentExtractedText = '';
       currentFile = null;
+      fileInput.value = '';
       textInput.value = '';
       ocrResultText.value = '';
       updateCharCount();

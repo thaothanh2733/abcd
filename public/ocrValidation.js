@@ -10,8 +10,12 @@ function isUsableOcrText(text, confidence) {
     'home', 'search', 'images', 'settings', 'menu', 'maps', 'news', 'drive',
     'dang', 'nhap', 'tiep', 'theo', 'them', 'xem', 'tat', 'ca'
   ]);
-  const hasMessageOrFinancialContext =
-    /\b(otp|ngan hang|cong an|chuyen tien|chuyen khoan|tai khoan|xac minh|trung thuong|nap tien|mat khau|tin nhan|sms|zalo|messenger|facebook|thanh toan|ma bao mat)\b/.test(normalized);
+  const hasMessageOrFinancialContext = /\b(otp|ngan hang|cong an|chuyen tien|chuyen khoan|tai khoan|xac minh|trung thuong|nap tien|mat khau|tin nhan|sms|zalo|messenger|facebook|thanh toan|ma bao mat|ma xac nhan|khoa tai khoan|chuyen khoan|nhan tien|gui tien|thong bao)\b/.test(normalized);
+  const hasConversationalContext = /\b(xin chao|chao ban|ban vui long|ban hay|ban can|ban da|toi vua|toi can|toi da|minh can|minh da|em da|em can|anh da|chi da|bac nho|bac vui long|chu nho|nho goi|nho den|vui long|hay bam|yeu cau|cho biet|giup toi|giup minh)\b/.test(normalized);
+
+  if (!hasMessageOrFinancialContext && !hasConversationalContext) {
+    return false;
+  }
 
   if (words.length > 0 && !hasMessageOrFinancialContext && words.every((word) => interfaceWords.has(word))) {
     return false;
