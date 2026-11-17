@@ -364,7 +364,7 @@ async function runOcrOnImage(file) {
       ocrResultText.value = '';
       updateCharCount();
       ocrErrorMessage.classList.add('is-info');
-      ocrErrorMessage.textContent = 'ℹ️ Ảnh này chưa phù hợp để kiểm tra. Bạn vui lòng tải ảnh chụp hợp lệ có nội dung tin nhắn từ SMS, Zalo hoặc Facebook, hoặc dán nội dung tin nhắn vào ô nhập.';
+      ocrErrorMessage.textContent = '⚠️ Ảnh này chưa phù hợp để kiểm tra. Bạn vui lòng tải ảnh chụp hợp lệ có nội dung tin nhắn từ SMS, Zalo hoặc Facebook, hoặc dán nội dung tin nhắn vào ô nhập.';
       ocrErrorMessage.style.display = 'block';
       speakText('Ảnh này chưa có nội dung tin nhắn phù hợp. Bạn vui lòng chọn ảnh chụp tin nhắn hợp lệ nhé!');
       return;
