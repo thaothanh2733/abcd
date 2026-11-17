@@ -259,16 +259,29 @@ console.log('================================================================\n'
     html.includes('id="smsDemoBtn"') &&
     html.includes('<dialog') &&
     html.includes('id="smsDemoAcceptBtn"') &&
+    html.includes('id="smsDemoDismissBtn"') &&
+    html.includes('id="smsVoiceRepeatYesBtn"') &&
+    html.includes('id="smsVoiceRepeatNoBtn"') &&
+    html.includes('Bạn vừa nhận được một tin nhắn lạ. Bạn có muốn kiểm tra không?') &&
+    html.includes('id="smsVoicePageStatus"') &&
     html.indexOf('id="alertLevelText"') < html.indexOf('id="ttsBtn"') &&
     html.indexOf('id="ttsBtn"') < html.indexOf('class="result-body"') &&
     app.includes('window.SpeechRecognition || window.webkitSpeechRecognition') &&
     app.includes("recognition.lang = 'vi-VN'") &&
     app.includes('shouldAnalyzeAfterSpeech') &&
-    app.includes("handleAnalyze({ autoRead: true })") &&
+    app.includes("handleAnalyze({ voiceDemo: true })") &&
+    app.includes('function classifySmsVoiceCommand') &&
+    app.includes('function speakSmsDemoAlert(askToRepeat)') &&
+    app.includes("const SMS_DEMO_QUESTION = 'Bạn vừa nhận được một tin nhắn lạ.") &&
+    app.includes("const SMS_DEMO_ALERT = 'Xin thông báo: Tin nhắn này NGUY HIỂM CAO.") &&
+    app.includes('SMS_REPEAT_QUESTION') &&
+    app.includes('utterance.rate = 0.85') &&
     app.includes('window.speechSynthesis.pause()') &&
     app.includes('window.speechSynthesis.resume()') &&
     css.includes('.speech-input-button.is-listening') &&
     css.includes('.sms-demo-dialog') &&
+    css.includes('.sms-demo-mic-status.is-listening') &&
+    css.includes('.sms-demo-followup-actions') &&
     css.includes('.result-banner .tts-button');
   const pass = hasMobileMedia && hasFontScaling && hasSeniorFriendlyResults &&
     hasThemeToggle && hasDarkPalette && hasDarkModeFocus && hasReadableDarkHelpers &&

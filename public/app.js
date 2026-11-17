@@ -14,6 +14,12 @@ let isSpeechPaused = false;
 let speechRecognition = null;
 let speechRecognitionResult = '';
 let shouldAnalyzeAfterSpeech = false;
+let smsVoiceRecognition = null;
+let smsVoiceStage = null;
+let smsVoiceCommand = null;
+let smsVoiceError = null;
+let smsVoiceRetryCount = 0;
+let smsVoiceFlowActive = false;
 let isServerOnline = false;
 
 // DOM Elements
@@ -57,6 +63,12 @@ const smsDemoBtn = document.getElementById('smsDemoBtn');
 const smsDemoDialog = document.getElementById('smsDemoDialog');
 const smsDemoAcceptBtn = document.getElementById('smsDemoAcceptBtn');
 const smsDemoDismissBtn = document.getElementById('smsDemoDismissBtn');
+const smsDemoMicStatus = document.getElementById('smsDemoMicStatus');
+const smsDemoVoiceStatus = document.getElementById('smsDemoVoiceStatus');
+const smsVoicePageStatus = document.getElementById('smsVoicePageStatus');
+const smsVoicePageActions = document.getElementById('smsVoicePageActions');
+const smsVoiceRepeatYesBtn = document.getElementById('smsVoiceRepeatYesBtn');
+const smsVoiceRepeatNoBtn = document.getElementById('smsVoiceRepeatNoBtn');
 const historyList = document.getElementById('historyList');
 const historyStatus = document.getElementById('historyStatus');
 const sidebarMenuBtn = document.getElementById('sidebarMenuBtn');
@@ -447,6 +459,7 @@ removeImgBtn.addEventListener('click', () => {
 analyzeBtn.addEventListener('click', () => handleAnalyze());
 
 async function handleAnalyze(options = {}) {
+  if (!options.voiceDemo) cancelSmsVoiceFlow();
   cancelSpeechInput();
   const content = textInput.value.trim();
 
@@ -495,13 +508,21 @@ async function handleAnalyze(options = {}) {
     }
 
     // Hiển thị kết quả
-    renderResult(analysisResult, { historyText: content, autoRead: options.autoRead !== false });
+    renderResult(analysisResult, {
+      historyText: content,
+      autoRead: options.autoRead !== false,
+      voiceDemo: options.voiceDemo === true
+    });
   } catch (err) {
     console.warn('Lỗi phân tích mạng, chuyển sang phân tích an toàn nội bộ:', err);
     // Tự động chuyển fallback an toàn
     const fallbackResult = clientAnalyzeOffline(content);
     fallbackResult.fallback_notice = 'Đã tự động chuyển sang chế độ phân tích quy tắc an toàn nội bộ.';
-    renderResult(fallbackResult, { historyText: content, autoRead: options.autoRead !== false });
+    renderResult(fallbackResult, {
+      historyText: content,
+      autoRead: options.autoRead !== false,
+      voiceDemo: options.voiceDemo === true
+    });
   } finally {
     loadingBox.style.display = 'none';
     analyzeBtn.disabled = false;
@@ -569,7 +590,9 @@ function renderResult(data, options = {}) {
     saveHistoryEntry(options.historyText, data);
   }
 
-  if (options.autoRead) {
+  if (options.voiceDemo) {
+    window.setTimeout(() => speakSmsDemoAlert(true), 150);
+  } else if (options.autoRead) {
     window.setTimeout(() => speakResult(), 150);
   }
 
@@ -580,7 +603,10 @@ function renderResult(data, options = {}) {
 // ==========================================================================
 // 9. ĐỌC KẾT QUẢ BẰNG GIỌNG NÓI (TEXT-TO-SPEECH CHO NGƯỜI CAO TUỔI)
 // ==========================================================================
-ttsBtn.addEventListener('click', toggleSpeech);
+ttsBtn.addEventListener('click', () => {
+  cancelSmsVoiceFlow();
+  toggleSpeech();
+});
 
 function toggleSpeech() {
   if (isSpeechActive) {
@@ -599,12 +625,7 @@ function toggleSpeech() {
   speakResult();
 }
 
-function speakResult() {
-  if (!('speechSynthesis' in window)) {
-    ttsBtn.textContent = 'Trình duyệt chưa hỗ trợ đọc giọng nói';
-    return;
-  }
-
+function getResultSpeechText() {
   const level = alertLevelText.textContent;
   const why = explanationText.textContent;
 
@@ -613,46 +634,71 @@ function speakResult() {
     .map((item, i) => `Việc thứ ${i + 1}: ${item.textContent}`)
     .join('. ');
 
-  const fullSpeech = `
-    Lá Chắn Người Thân xin thông báo.
+  return `
+    Xin thông báo.
     Mức độ cảnh báo: ${level}.
     Vì sao cần cảnh giác: ${why}.
     Việc bạn nên làm ngay là: ${actionItems}.
     ${safetyReminderText.textContent}
   `;
+}
 
-  currentUtterance = new SpeechSynthesisUtterance(fullSpeech);
-  currentUtterance.lang = 'vi-VN';
-  currentUtterance.rate = 0.78;
-  currentUtterance.volume = 1;
+function speakResult() {
+  speakText(getResultSpeechText());
+}
+
+function speakText(text, onEnd) {
+  if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance !== 'function') {
+    ttsBtn.textContent = resultCard.style.display === 'block'
+      ? 'Trình duyệt chưa hỗ trợ đọc giọng nói'
+      : '🔊 NGHE KẾT QUẢ';
+    if (onEnd) onEnd();
+    return false;
+  }
+
+  stopSpeaking();
+  currentUtterance = new SpeechSynthesisUtterance(text);
+  const utterance = currentUtterance;
+  utterance.lang = 'vi-VN';
+  utterance.rate = 0.85;
+  utterance.volume = 1;
   isSpeechPaused = false;
   isSpeechActive = true;
   ttsBtn.textContent = '⏸️ Tạm dừng đọc';
 
-  currentUtterance.onstart = () => {
+  utterance.onstart = () => {
+    if (currentUtterance !== utterance) return;
     isSpeechActive = true;
     ttsBtn.classList.add('speaking');
   };
 
-  currentUtterance.onend = () => {
-    stopSpeaking();
+  const finish = () => {
+    if (currentUtterance !== utterance) return;
+    currentUtterance = null;
+    resetSpeechState();
+    if (onEnd) onEnd();
   };
 
-  currentUtterance.onerror = () => {
-    stopSpeaking();
-  };
+  utterance.onend = finish;
+  utterance.onerror = finish;
 
-  window.speechSynthesis.speak(currentUtterance);
+  window.speechSynthesis.speak(utterance);
+  return true;
 }
 
-function stopSpeaking() {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-  }
+function resetSpeechState() {
   isSpeechActive = false;
   isSpeechPaused = false;
   ttsBtn.classList.remove('speaking');
   ttsBtn.textContent = '🔊 NGHE KẾT QUẢ';
+}
+
+function stopSpeaking() {
+  currentUtterance = null;
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+  resetSpeechState();
 }
 
 function createSpeechRecognition() {
@@ -751,29 +797,200 @@ function cancelSpeechInput() {
   recognition.stop();
 }
 
-function playSmsNotificationSound() {
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return;
+const SMS_DEMO_QUESTION = 'Bạn vừa nhận được một tin nhắn lạ. Bạn có muốn kiểm tra không? Nếu có, hãy nói CÓ. Nếu không, hãy nói KHÔNG.';
+const SMS_REPEAT_QUESTION = 'Bạn có muốn nghe lại không? Hãy nói CÓ hoặc KHÔNG.';
+const SMS_UNCLEAR_PROMPT = 'Chưa nghe rõ, bạn vui lòng nói CÓ hoặc KHÔNG, hoặc bấm nút trên màn hình.';
+const SMS_DEMO_ALERT = 'Xin thông báo: Tin nhắn này NGUY HIỂM CAO. Kẻ xấu đang giả mạo ngân hàng đòi mã OTP để lấy tiền. Việc bạn cần làm ngay là: Tuyệt đối không gửi mã OTP cho ai và gọi ngay con cháu giúp đỡ.';
+
+function setSmsVoiceStatus(message, listening = false) {
+  smsDemoVoiceStatus.textContent = message;
+  smsDemoMicStatus.classList.toggle('is-listening', listening);
+  smsDemoMicStatus.setAttribute('aria-label', listening ? 'Micro đang nghe' : message);
+  const showOnPage = !smsDemoDialog.open && smsVoiceFlowActive;
+  smsVoicePageStatus.hidden = !showOnPage;
+  smsVoicePageStatus.textContent = message;
+  smsVoicePageStatus.classList.toggle('is-listening', listening);
+  smsVoicePageActions.hidden = !showOnPage || smsVoiceStage !== 'repeat';
+}
+
+function normalizeVoiceCommand(text) {
+  return text.toLocaleLowerCase('vi-VN')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function classifySmsVoiceCommand(text) {
+  const command = normalizeVoiceCommand(text);
+  if (!command) return null;
+
+  if (/\b(khong|bo qua|thoi)\b/.test(command)) return 'no';
+  if (/\b(co|dong y|kiem tra)\b/.test(command)) return 'yes';
+  return null;
+}
+
+function startSmsVoiceRecognition(stage) {
+  if (!smsVoiceFlowActive) return;
+
+  const recognition = createSpeechRecognition();
+  if (!recognition) {
+    setSmsVoiceStatus('Trình duyệt không hỗ trợ micro. Hãy chọn một nút trên màn hình.');
+    return;
+  }
+
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  smsVoiceRecognition = recognition;
+  smsVoiceStage = stage;
+  smsVoiceCommand = null;
+  smsVoiceError = null;
+  setSmsVoiceStatus('Đang nghe. Nói CÓ hoặc KHÔNG.', true);
+
+  recognition.onresult = (event) => {
+    const transcript = Array.from(event.results)
+      .map((result) => result[0]?.transcript || '')
+      .join(' ')
+      .trim();
+    smsVoiceCommand = classifySmsVoiceCommand(transcript);
+  };
+
+  recognition.onerror = (event) => {
+    if (smsVoiceRecognition !== recognition) return;
+    smsVoiceError = event.error;
+  };
+
+  recognition.onend = () => {
+    if (smsVoiceRecognition !== recognition) return;
+    smsVoiceRecognition = null;
+    smsDemoMicStatus.classList.remove('is-listening');
+
+    const command = smsVoiceCommand;
+    const error = smsVoiceError;
+    const activeStage = smsVoiceStage;
+    smsVoiceCommand = null;
+    smsVoiceError = null;
+
+    if (command) {
+      smsVoiceRetryCount = 0;
+      handleSmsVoiceCommand(command, activeStage);
+    } else if (error === 'not-allowed' || error === 'service-not-allowed') {
+      setSmsVoiceStatus('Micro chưa được cấp quyền. Hãy chọn một nút trên màn hình.');
+    } else if (error === 'aborted') {
+      setSmsVoiceStatus('Hãy nói CÓ hoặc KHÔNG, hoặc chọn một nút.');
+    } else {
+      repeatSmsVoicePrompt(activeStage);
+    }
+  };
 
   try {
-    const context = new AudioContext();
-    [0, 0.22].forEach((delay) => {
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      oscillator.type = 'sine';
-      oscillator.frequency.value = 880;
-      gain.gain.setValueAtTime(0.0001, context.currentTime + delay);
-      gain.gain.exponentialRampToValueAtTime(0.08, context.currentTime + delay + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + delay + 0.13);
-      oscillator.connect(gain);
-      gain.connect(context.destination);
-      oscillator.start(context.currentTime + delay);
-      oscillator.stop(context.currentTime + delay + 0.14);
-    });
-    window.setTimeout(() => context.close(), 600);
+    recognition.start();
   } catch (error) {
-    console.warn('Không thể phát âm báo SMS mô phỏng:', error);
+    smsVoiceRecognition = null;
+    smsDemoMicStatus.classList.remove('is-listening');
+    setSmsVoiceStatus('Không thể bật micro. Hãy chọn một nút trên màn hình.');
+    console.error('Không thể bắt đầu nhận dạng khẩu lệnh SMS:', error);
   }
+}
+
+function stopSmsVoiceRecognition() {
+  if (!smsVoiceRecognition) return;
+  const recognition = smsVoiceRecognition;
+  smsVoiceRecognition = null;
+  recognition.stop();
+  smsDemoMicStatus.classList.remove('is-listening');
+}
+
+function speakSmsPrompt(text, next) {
+  setSmsVoiceStatus('Đang đọc câu hỏi...');
+  speakText(text, () => {
+    if (smsVoiceFlowActive) next();
+  });
+}
+
+function repeatSmsVoicePrompt(stage) {
+  smsVoiceRetryCount += 1;
+  if (smsVoiceRetryCount > 1) {
+    setSmsVoiceStatus('Hãy chọn một nút trên màn hình.');
+    return;
+  }
+
+  speakSmsPrompt(SMS_UNCLEAR_PROMPT, () => startSmsVoiceRecognition(stage));
+}
+
+function handleSmsVoiceCommand(command, stage) {
+  stopSmsVoiceRecognition();
+  if (stage === 'initial') {
+    if (command === 'yes') acceptSmsDemo();
+    else dismissSmsDemo();
+    return;
+  }
+
+  if (command === 'yes') {
+    setSmsVoiceStatus('Đang đọc lại kết quả...');
+    smsVoiceFlowActive = false;
+    smsVoiceStage = null;
+    smsVoicePageActions.hidden = true;
+    speakText(SMS_DEMO_ALERT, () => {
+      smsVoicePageStatus.hidden = true;
+    });
+  } else {
+    setSmsVoiceStatus('Đã hoàn thành kiểm tra.');
+    smsVoiceFlowActive = false;
+    smsVoiceStage = null;
+    smsVoicePageActions.hidden = true;
+    speakText('Đã hoàn thành kiểm tra.', () => {
+      smsVoicePageStatus.hidden = true;
+    });
+  }
+}
+
+function speakSmsDemoAlert(askToRepeat) {
+  if (!('speechSynthesis' in window)) {
+    setSmsVoiceStatus('Trình duyệt không hỗ trợ đọc giọng nói. Bạn có thể bấm nút nghe kết quả.');
+    smsVoiceFlowActive = false;
+    return;
+  }
+
+  speakText(SMS_DEMO_ALERT, () => {
+    if (!askToRepeat || !smsVoiceFlowActive) return;
+    smsVoiceRetryCount = 0;
+    smsVoiceStage = 'repeat';
+    speakSmsPrompt(SMS_REPEAT_QUESTION, () => startSmsVoiceRecognition('repeat'));
+  });
+}
+
+function acceptSmsDemo() {
+  smsVoiceStage = 'analysis';
+  stopSmsVoiceRecognition();
+  if (smsDemoDialog.open) smsDemoDialog.close();
+
+  startNewCheck({ keepSmsVoiceFlow: true });
+  textInput.value = 'Thông báo từ ngân hàng: Tài khoản của bạn sẽ bị khóa. Vui lòng cung cấp mã OTP để xác minh ngay.';
+  updateCharCount();
+  handleAnalyze({ voiceDemo: true });
+}
+
+function dismissSmsDemo() {
+  smsVoiceFlowActive = false;
+  smsVoiceStage = null;
+  stopSmsVoiceRecognition();
+  if (smsDemoDialog.open) smsDemoDialog.close();
+  setSmsVoiceStatus('Đã bỏ qua tin nhắn này.');
+  speakText('Đã bỏ qua tin nhắn này.');
+}
+
+function cancelSmsVoiceFlow() {
+  if (!smsVoiceFlowActive && !smsVoiceRecognition) return;
+  smsVoiceFlowActive = false;
+  smsVoiceStage = null;
+  smsVoiceRetryCount = 0;
+  stopSmsVoiceRecognition();
+  if (smsDemoDialog.open) smsDemoDialog.close();
+  smsVoicePageStatus.hidden = true;
+  smsVoicePageActions.hidden = true;
 }
 
 smsDemoBtn.addEventListener('click', () => {
@@ -782,23 +999,26 @@ smsDemoBtn.addEventListener('click', () => {
     return;
   }
 
-  playSmsNotificationSound();
+  cancelSmsVoiceFlow();
+  cancelSpeechInput();
+  stopSpeaking();
+  smsVoiceFlowActive = true;
+  smsVoiceStage = 'initial';
+  smsVoiceRetryCount = 0;
   smsDemoDialog.showModal();
+  speakSmsPrompt(SMS_DEMO_QUESTION, () => startSmsVoiceRecognition('initial'));
   smsDemoAcceptBtn.focus();
 });
 
-smsDemoDismissBtn.addEventListener('click', () => smsDemoDialog.close());
-smsDemoDialog.addEventListener('click', (event) => {
-  if (event.target === smsDemoDialog) smsDemoDialog.close();
-});
-
-smsDemoAcceptBtn.addEventListener('click', () => {
-  smsDemoDialog.close();
-  startNewCheck();
-  const sampleMessage = 'Thông báo từ ngân hàng: Tài khoản của bạn sẽ bị khóa. Vui lòng cung cấp mã OTP để xác minh ngay.';
-  textInput.value = sampleMessage;
-  updateCharCount();
-  handleAnalyze({ autoRead: true });
+smsDemoAcceptBtn.addEventListener('click', acceptSmsDemo);
+smsDemoDismissBtn.addEventListener('click', dismissSmsDemo);
+smsVoiceRepeatYesBtn.addEventListener('click', () => handleSmsVoiceCommand('yes', 'repeat'));
+smsVoiceRepeatNoBtn.addEventListener('click', () => handleSmsVoiceCommand('no', 'repeat'));
+smsDemoDialog.addEventListener('close', () => {
+  if (!smsVoiceFlowActive || smsVoiceStage !== 'initial') return;
+  cancelSmsVoiceFlow();
+  stopSpeaking();
+  setSmsVoiceStatus('Đã đóng thông báo.');
 });
 
 // ==========================================================================
@@ -810,7 +1030,8 @@ resetBtn.addEventListener('click', () => {
   startNewCheck();
 });
 
-function startNewCheck() {
+function startNewCheck(options = {}) {
+  if (!options.keepSmsVoiceFlow) cancelSmsVoiceFlow();
   cancelSpeechInput();
   speechInputStatus.textContent = '';
   stopSpeaking();

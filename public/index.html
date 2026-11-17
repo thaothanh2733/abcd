@@ -104,7 +104,7 @@
         </div>
 
         <button type="button" id="analyzeBtn" class="glass-button analyze-button">Kiểm tra tin nhắn</button>
-        <button type="button" id="smsDemoBtn" class="glass-button sms-demo-button">📱 Thử nghiệm mô phỏng: Nhận tin nhắn SMS lạ</button>
+        <button type="button" id="smsDemoBtn" class="glass-button sms-demo-button">📱 Thử nghiệm: Nhận tin nhắn SMS lạ</button>
       </div>
 
       <div class="loading-box" id="loadingBox" role="status" aria-live="polite">
@@ -121,6 +121,11 @@
             </div>
           </div>
           <button type="button" class="glass-button tts-button" id="ttsBtn">🔊 NGHE KẾT QUẢ</button>
+        </div>
+        <p class="sms-demo-followup-status" id="smsVoicePageStatus" role="status" aria-live="polite" hidden></p>
+        <div class="sms-demo-followup-actions" id="smsVoicePageActions" hidden>
+          <button type="button" class="glass-button sms-demo-accept" id="smsVoiceRepeatYesBtn">🟢 NÓI "CÓ" (NGHE LẠI)</button>
+          <button type="button" class="glass-button sms-demo-dismiss" id="smsVoiceRepeatNoBtn">⚪ NÓI "KHÔNG" (KẾT THÚC)</button>
         </div>
 
         <div class="result-body">
@@ -143,13 +148,18 @@
     </section>
   </main>
 
-  <dialog class="sms-demo-dialog" id="smsDemoDialog" aria-labelledby="smsDemoTitle" aria-describedby="smsDemoDescription">
+  <dialog class="sms-demo-dialog" id="smsDemoDialog" aria-labelledby="smsDemoTitle" aria-describedby="smsDemoDescription smsDemoQuestion">
     <div class="sms-demo-content">
-      <h2 id="smsDemoTitle">🛡️ LÁ CHẮN NGƯỜI THÂN</h2>
-      <p id="smsDemoDescription">Đây là thông báo mô phỏng, website không đọc SMS thật. Bạn có muốn thử kiểm tra một tin nhắn mẫu không?</p>
+      <h2 id="smsDemoTitle">Tin nhắn SMS lạ</h2>
+      <p id="smsDemoDescription">Mô phỏng tin nhắn đến. Website không đọc SMS thật.</p>
+      <p class="sms-demo-question" id="smsDemoQuestion">Bạn vừa nhận được một tin nhắn lạ. Bạn có muốn kiểm tra không? Nếu có, hãy nói CÓ. Nếu không, hãy nói KHÔNG.</p>
+      <div class="sms-demo-mic-status" id="smsDemoMicStatus" role="status" aria-live="polite">
+        <span class="sms-demo-mic-indicator" aria-hidden="true">🎙️</span>
+        <span id="smsDemoVoiceStatus">Đang đọc câu hỏi...</span>
+      </div>
       <div class="sms-demo-actions">
-        <button type="button" class="glass-button sms-demo-accept" id="smsDemoAcceptBtn">Có, kiểm tra giúp tôi</button>
-        <button type="button" class="glass-button sms-demo-dismiss" id="smsDemoDismissBtn">Để sau</button>
+        <button type="button" class="glass-button sms-demo-accept" id="smsDemoAcceptBtn">🟢 NÓI "CÓ" (KIỂM TRA)</button>
+        <button type="button" class="glass-button sms-demo-dismiss" id="smsDemoDismissBtn">⚪ NÓI "KHÔNG" (BỎ QUA)</button>
       </div>
     </div>
   </dialog>
