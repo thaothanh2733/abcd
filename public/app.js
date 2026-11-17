@@ -364,9 +364,9 @@ async function runOcrOnImage(file) {
       ocrResultText.value = '';
       updateCharCount();
       ocrErrorMessage.classList.add('is-info');
-      ocrErrorMessage.textContent = 'ℹ️ Hình ảnh chưa đúng định dạng: Hệ thống nhận thấy ảnh này không phải là ảnh chụp màn hình tin nhắn. Bạn vui lòng tải ảnh chụp đoạn tin nhắn từ SMS, Zalo hoặc Facebook để được hỗ trợ kiểm tra chính xác nhé!';
+      ocrErrorMessage.textContent = 'ℹ️ Ảnh này chưa phù hợp để kiểm tra. Bạn vui lòng tải ảnh chụp hợp lệ có nội dung tin nhắn từ SMS, Zalo hoặc Facebook, hoặc dán nội dung tin nhắn vào ô nhập.';
       ocrErrorMessage.style.display = 'block';
-      speakText('Hình ảnh này không chứa nội dung tin nhắn. Bạn vui lòng tải lại ảnh chụp tin nhắn nhé!');
+      speakText('Ảnh này chưa có nội dung tin nhắn phù hợp. Bạn vui lòng chọn ảnh chụp tin nhắn hợp lệ nhé!');
       return;
     }
 
@@ -558,7 +558,10 @@ async function handleAnalyze(options = {}) {
 
   // Kiểm tra đầu vào rỗng
   if (!content) {
-    alert('Bạn vui lòng dán nội dung tin nhắn hoặc tải ảnh có chứa chữ để Lá Chắn Người Thân kiểm tra giúp nhé!');
+    const hasUploadedImage = previewContainer.style.display !== 'none';
+    alert(hasUploadedImage
+      ? 'Ảnh bạn vừa tải chưa phải ảnh chụp hợp lệ có nội dung tin nhắn. Vui lòng chọn ảnh chụp tin nhắn SMS, Zalo hoặc Facebook, hoặc dán nội dung tin nhắn vào ô nhập.'
+      : 'Bạn vui lòng dán nội dung tin nhắn hoặc tải ảnh chụp hợp lệ có nội dung tin nhắn để kiểm tra.');
     textInput.focus();
     finishAnalysisAttempt();
     return;

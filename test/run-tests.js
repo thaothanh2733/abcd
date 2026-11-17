@@ -293,7 +293,9 @@ console.log('================================================================\n'
     app.includes('shareData.files = [currentFile]') &&
     app.includes('📩 Nội dung: (Vui lòng xem chi tiết trong ảnh chụp màn hình đính kèm)') &&
     app.includes('📩 Nội dung tin nhắn:\\n"${messageText}"') &&
-    app.includes('Hình ảnh này không chứa nội dung tin nhắn. Bạn vui lòng tải lại ảnh chụp tin nhắn nhé!') &&
+    app.includes('Ảnh này chưa có nội dung tin nhắn phù hợp. Bạn vui lòng chọn ảnh chụp tin nhắn hợp lệ nhé!') &&
+    app.includes('Ảnh bạn vừa tải chưa phải ảnh chụp hợp lệ có nội dung tin nhắn.') &&
+    app.includes('tải ảnh chụp hợp lệ có nội dung tin nhắn') &&
     app.includes('ocrErrorMessage.classList.add(\'is-info\')') &&
     app.includes('window.location.origin || window.location.href') &&
     app.includes('currentResultText = typeof options.historyText') &&
