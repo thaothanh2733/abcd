@@ -291,6 +291,10 @@ console.log('================================================================\n'
     app.includes('navigator.share') &&
     app.includes('navigator.canShare({ files: [currentFile] })') &&
     app.includes('shareData.files = [currentFile]') &&
+    app.includes('📩 Nội dung: (Vui lòng xem chi tiết trong ảnh chụp màn hình đính kèm)') &&
+    app.includes('📩 Nội dung tin nhắn:\\n"${messageText}"') &&
+    app.includes('Hình ảnh này không chứa nội dung tin nhắn. Bạn vui lòng tải lại ảnh chụp tin nhắn nhé!') &&
+    app.includes('ocrErrorMessage.classList.add(\'is-info\')') &&
     app.includes('window.location.origin || window.location.href') &&
     app.includes('currentResultText = typeof options.historyText') &&
     app.includes('currentResultData = data') &&
@@ -306,7 +310,8 @@ console.log('================================================================\n'
     app.includes("Tesseract.createWorker('vie+eng', 1") &&
     app.includes('window.addEventListener(\'load\', warmOcrWorker') &&
     app.includes('ocrRecognitionQueue') &&
-    css.includes('.share-result-button');
+    css.includes('.share-result-button') &&
+    css.includes('.ocr-error-message.is-info');
   const pass = hasMobileMedia && hasFontScaling && hasSeniorFriendlyResults &&
     hasThemeToggle && hasDarkPalette && hasDarkModeFocus && hasReadableDarkHelpers &&
     hasHistorySidebar && hasVoiceAndSmsAccessibility && hasPerformanceAndSharing;

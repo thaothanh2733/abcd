@@ -341,6 +341,7 @@ async function runOcrOnImage(file) {
   ocrResultBox.style.display = 'none';
   ocrErrorMessage.style.display = 'none';
   ocrErrorMessage.textContent = '';
+  ocrErrorMessage.classList.remove('is-info');
   ocrProgressBar.style.width = '10%';
   ocrProgressText.textContent = 'Đang chuẩn bị ảnh và tải bộ nhận diện chữ tiếng Việt...';
   ocrIsRunning = true;
@@ -357,14 +358,18 @@ async function runOcrOnImage(file) {
 
     if (!isUsableOcrText(extracted, ret.data.confidence)) {
       currentExtractedText = '';
+      currentFile = null;
       textInput.value = '';
       ocrResultText.value = '';
       updateCharCount();
-      ocrErrorMessage.textContent = 'Ảnh này không có hoặc không đọc rõ nội dung tin nhắn. Bạn vui lòng gửi lại ảnh chụp màn hình tin nhắn rõ chữ, hoặc chọn “Dán tin nhắn” để nhập nội dung cần kiểm tra.';
+      ocrErrorMessage.classList.add('is-info');
+      ocrErrorMessage.textContent = 'ℹ️ Hình ảnh chưa đúng định dạng: Hệ thống nhận thấy ảnh này không phải là ảnh chụp màn hình tin nhắn. Bạn vui lòng tải ảnh chụp đoạn tin nhắn từ SMS, Zalo hoặc Facebook để được hỗ trợ kiểm tra chính xác nhé!';
       ocrErrorMessage.style.display = 'block';
+      speakText('Hình ảnh này không chứa nội dung tin nhắn. Bạn vui lòng tải lại ảnh chụp tin nhắn nhé!');
       return;
     }
 
+    ocrErrorMessage.classList.remove('is-info');
     currentExtractedText = extracted;
     ocrResultBox.style.display = 'block';
     ocrResultText.value = extracted;
@@ -472,6 +477,7 @@ function handleSelectedImage(file) {
   ocrResultBox.style.display = 'none';
   ocrErrorMessage.style.display = 'none';
   ocrErrorMessage.textContent = '';
+  ocrErrorMessage.classList.remove('is-info');
   resultCard.style.display = 'none';
   resetBtn.style.display = 'none';
   updateCharCount();
@@ -497,6 +503,7 @@ removeImgBtn.addEventListener('click', () => {
   ocrProgressBox.style.display = 'none';
   ocrErrorMessage.style.display = 'none';
   ocrErrorMessage.textContent = '';
+  ocrErrorMessage.classList.remove('is-info');
   if (removedOcrText && textInput.value === removedOcrText) {
     textInput.value = '';
     updateCharCount();
@@ -721,7 +728,24 @@ shareResultBtn.addEventListener('click', async () => {
   const actions = Array.isArray(result.recommended_actions)
     ? result.recommended_actions.slice(0, 2).filter(Boolean).join('; ')
     : '';
+  const isImageInput = Boolean(currentFile);
+  const canAttachImage = isImageInput &&
+    typeof navigator.share === 'function' &&
+    typeof navigator.canShare === 'function' &&
+    (() => {
+      try {
+        return navigator.canShare({ files: [currentFile] });
+      } catch (error) {
+        console.warn('Không thể xác nhận hỗ trợ chia sẻ ảnh:', error);
+        return false;
+      }
+    })();
   const websiteUrl = window.location.origin || window.location.href;
+  const sharedMessageContent = isImageInput
+    ? (canAttachImage
+      ? '📩 Nội dung: (Vui lòng xem chi tiết trong ảnh chụp màn hình đính kèm)'
+      : '📩 Nội dung: Ảnh chụp màn hình cần được gửi kèm riêng vì thiết bị hoặc ứng dụng chia sẻ không hỗ trợ đính kèm ảnh.')
+    : `📩 Nội dung tin nhắn:\n"${messageText}"`;
   const message = [
     '[LÁ CHẮN NGƯỜI THÂN - CẢNH BÁO AN TOÀN]',
     '',
@@ -729,8 +753,7 @@ shareResultBtn.addEventListener('click', async () => {
     `⚠️ Mức độ: ${alertLevel}`,
     `📋 Kịch bản: ${scenario}`,
     '',
-    '📩 Nội dung tin nhắn:',
-    `"${messageText}"`,
+    sharedMessageContent,
     '',
     `💡 Dấu hiệu: ${signs}`,
     `🛡️ Việc cần làm ngay: ${actions || 'Hãy xác minh qua kênh chính thức trước khi làm theo yêu cầu.'}`,
@@ -744,17 +767,11 @@ shareResultBtn.addEventListener('click', async () => {
   try {
     if (typeof navigator.share === 'function') {
       const shareData = { title: 'Lá Chắn Người Thân - Cảnh báo an toàn', text: message };
-      if (currentFile && typeof navigator.canShare === 'function') {
-        try {
-          if (navigator.canShare({ files: [currentFile] })) {
-            shareData.files = [currentFile];
-          }
-        } catch (error) {
-          console.warn('Không thể xác nhận hỗ trợ chia sẻ ảnh, sẽ chia sẻ nội dung văn bản:', error);
-        }
-      }
+      if (canAttachImage) shareData.files = [currentFile];
       await navigator.share(shareData);
-      shareResultStatus.textContent = 'Đã gửi kết quả chia sẻ.';
+      shareResultStatus.textContent = isImageInput && !canAttachImage
+        ? 'Đã chia sẻ nội dung kết quả. Thiết bị không hỗ trợ đính kèm ảnh; bạn hãy gửi ảnh riêng nếu cần.'
+        : 'Đã gửi kết quả chia sẻ.';
       return;
     }
 

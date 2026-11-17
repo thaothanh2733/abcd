@@ -6,6 +6,17 @@ assert.equal(isUsableOcrText(portraitOcrGarbage, 95), false, 'Reject confident-l
 assert.equal(isUsableOcrText('Tin nhan ngan hang yeu cau nhap ma OTP 123456', 72), true, 'Accept a recognizable scam-message extraction');
 assert.equal(isUsableOcrText('Chieu nay Bac nho den hop nhe', 66), true, 'Accept readable ordinary Vietnamese message text');
 assert.equal(isUsableOcrText('Tai khoan se bi khoa trong 24 gio', 30), false, 'Reject OCR output below the confidence threshold');
+assert.equal(isUsableOcrText('Tin nhan ngan', 95), false, 'Reject OCR text shorter than 15 characters');
+assert.equal(
+  isUsableOcrText('Google Tìm kiếm Gmail Hình ảnh Trang chủ Cài đặt', 95),
+  false,
+  'Reject generic web interface text with no message or financial context'
+);
+assert.equal(
+  isUsableOcrText('Google Tìm kiếm tài khoản ngân hàng yêu cầu mã OTP ngay', 95),
+  true,
+  'Keep text with financial and message context even when it contains interface words'
+);
 assert.equal(isUsableOcrText('', 100), false, 'Reject images with no recognized text');
 
 console.log('ĐẠT: OCR từ chối ảnh không có chữ và chỉ chấp nhận nội dung đủ độ tin cậy.');

@@ -648,6 +648,12 @@ body.dark-mode .clear-history-button {
   font-weight: 700;
 }
 
+.ocr-error-message.is-info {
+  border-color: #946200;
+  background: #fff5cf;
+  color: #493300;
+}
+
 .progress-bar-bg {
   height: 12px;
   margin-top: 0.65rem;
@@ -1383,6 +1389,12 @@ body.dark-mode .ocr-error-message {
   border-color: #ef8589;
   background: #3b2022;
   color: #ffe4e4;
+}
+
+body.dark-mode .ocr-error-message.is-info {
+  border-color: #facc15;
+  background: #3a321b;
+  color: #fff2bd;
 }
 
 body.dark-mode .detected-item {
