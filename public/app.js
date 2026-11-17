@@ -9,6 +9,8 @@
 let currentFile = null;
 let currentPreviewUrl = null;
 let currentExtractedText = '';
+let currentResultText = '';
+let currentResultData = null;
 let isSpeechActive = false;
 let currentUtterance = null;
 let isSpeechPaused = false;
@@ -618,6 +620,11 @@ async function handleAnalyze(options = {}) {
 // 8. KẾT XUẤT KẾT QUẢ PHÂN TÍCH (RENDER RESULT)
 // ==========================================================================
 function renderResult(data, options = {}) {
+  currentResultText = typeof options.historyText === 'string'
+    ? options.historyText
+    : textInput.value.trim();
+  currentResultData = data;
+
   // Đặt class mức độ cho card kết quả
   resultCard.className = 'result-card';
   let levelClass = 'level-unclear';
@@ -697,13 +704,56 @@ function renderResult(data, options = {}) {
 }
 
 shareResultBtn.addEventListener('click', async () => {
-  const message = `Tôi vừa kiểm tra một tin nhắn đáng ngờ và nhận được cảnh báo: ${alertLevelText.textContent}. Bạn hãy xem giúp tôi với nhé!`;
+  const result = currentResultData;
+  const messageText = (currentResultText || textInput.value || '').trim();
+  if (!result || !messageText) {
+    shareResultStatus.textContent = 'Chưa có nội dung và kết quả để chia sẻ. Bạn hãy kiểm tra tin nhắn trước.';
+    return;
+  }
+
+  const alertLevel = result.alert_level || alertLevelText.textContent || 'Chưa xác định';
+  const scenario = result.scenario && result.scenario !== 'Chưa xác định được kịch bản'
+    ? result.scenario
+    : 'Thủ đoạn đáng ngờ mới';
+  const signs = Array.isArray(result.detected_signs) && result.detected_signs.length > 0
+    ? result.detected_signs.join('; ')
+    : (result.explanation || 'Chưa ghi nhận dấu hiệu cụ thể.');
+  const actions = Array.isArray(result.recommended_actions)
+    ? result.recommended_actions.slice(0, 2).filter(Boolean).join('; ')
+    : '';
+  const websiteUrl = window.location.origin || window.location.href;
+  const message = [
+    '[LÁ CHẮN NGƯỜI THÂN - CẢNH BÁO AN TOÀN]',
+    '',
+    'Tôi vừa kiểm tra một tin nhắn đáng ngờ trên Lá Chắn Người Thân và nhận được kết quả:',
+    `⚠️ Mức độ: ${alertLevel}`,
+    `📋 Kịch bản: ${scenario}`,
+    '',
+    '📩 Nội dung tin nhắn:',
+    `"${messageText}"`,
+    '',
+    `💡 Dấu hiệu: ${signs}`,
+    `🛡️ Việc cần làm ngay: ${actions || 'Hãy xác minh qua kênh chính thức trước khi làm theo yêu cầu.'}`,
+    '',
+    'Bạn hãy xem giúp tôi với nhé!',
+    `👉 Link công cụ kiểm tra: ${websiteUrl}`
+  ].join('\n');
   shareResultBtn.disabled = true;
   shareResultStatus.textContent = 'Đang mở lựa chọn chia sẻ.';
 
   try {
     if (typeof navigator.share === 'function') {
-      await navigator.share({ text: message });
+      const shareData = { title: 'Lá Chắn Người Thân - Cảnh báo an toàn', text: message };
+      if (currentFile && typeof navigator.canShare === 'function') {
+        try {
+          if (navigator.canShare({ files: [currentFile] })) {
+            shareData.files = [currentFile];
+          }
+        } catch (error) {
+          console.warn('Không thể xác nhận hỗ trợ chia sẻ ảnh, sẽ chia sẻ nội dung văn bản:', error);
+        }
+      }
+      await navigator.share(shareData);
       shareResultStatus.textContent = 'Đã gửi kết quả chia sẻ.';
       return;
     }

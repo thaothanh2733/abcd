@@ -289,6 +289,13 @@ console.log('================================================================\n'
     html.includes('id="shareResultStatus"') &&
     html.includes('GỬI KẾT QUẢ CHO NGƯỜI THÂN QUA ZALO') &&
     app.includes('navigator.share') &&
+    app.includes('navigator.canShare({ files: [currentFile] })') &&
+    app.includes('shareData.files = [currentFile]') &&
+    app.includes('window.location.origin || window.location.href') &&
+    app.includes('currentResultText = typeof options.historyText') &&
+    app.includes('currentResultData = data') &&
+    app.includes('encodeURIComponent(message)') &&
+    app.includes('Thủ đoạn đáng ngờ mới') &&
     app.includes('https://zalo.me/share?text=') &&
     app.includes('navigator.vibrate([200, 100, 200, 100, 300])') &&
     app.includes('analysisCooldownUntil = Date.now() + 2500') &&
