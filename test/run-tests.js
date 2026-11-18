@@ -279,12 +279,14 @@ console.log('================================================================\n'
     app.includes('utterance.pitch = 1.08') &&
     app.includes('utterance.volume = 1') &&
     app.includes('function chooseVietnameseVoice(voices)') &&
-    app.includes('google tiếng việt|vi-vn-standard-a') &&
-    app.includes('hoaimy|microsoft hoaimy online') &&
+    app.includes('google.*tieng viet|vi[-_]vn[-_]standard[-_]a') &&
+    app.includes('hoai\\s*-?\\s*my|microsoft.*hoai\\s*-?\\s*my.*natural') &&
     app.includes('vietnamese\\s*\\(female\\)') &&
     app.includes('/^vi[-_]vn$/i') &&
+    app.includes('function isExplicitlyPreferredVietnameseVoice(voice)') &&
     app.includes('window.speechSynthesis.onvoiceschanged = refreshVietnameseVoices') &&
     app.includes('pendingSpeechStart = startUtterance') &&
+    app.includes('}, 1200)') &&
     app.includes('window.speechSynthesis.pause()') &&
     app.includes('window.speechSynthesis.resume()') &&
     css.includes('.speech-input-button.is-listening') &&

@@ -848,18 +848,33 @@ function speakResult() {
 }
 
 function chooseVietnameseVoice(voices) {
+  const normalizeName = (name) => name
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .replace(/đ/g, 'd')
+    .toLowerCase();
   const voicePriorityPatterns = [
-    /google tiếng việt|vi-vn-standard-a/i,
-    /hoaimy|microsoft hoaimy online \(natural\) - vietnamese/i,
+    /google.*tieng viet|vi[-_]vn[-_]standard[-_]a/i,
+    /hoai\s*-?\s*my|microsoft.*hoai\s*-?\s*my.*natural/i,
     /\blinh\b|vietnamese\s*\(female\)/i
   ];
 
   for (const pattern of voicePriorityPatterns) {
-    const match = voices.find((voice) => pattern.test(voice.name));
+    const match = voices.find((voice) => pattern.test(normalizeName(voice.name)));
     if (match) return match;
   }
 
   return voices.find((voice) => /^vi[-_]vn$/i.test(voice.lang)) || null;
+}
+
+function isExplicitlyPreferredVietnameseVoice(voice) {
+  if (!voice) return false;
+  const name = voice.name
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .replace(/đ/g, 'd')
+    .toLowerCase();
+  return /google.*tieng viet|vi[-_]vn[-_]standard[-_]a|hoai\s*-?\s*my|microsoft.*hoai\s*-?\s*my.*natural|\blinh\b|vietnamese\s*\(female\)/i.test(name);
 }
 
 function refreshVietnameseVoices() {
@@ -868,7 +883,7 @@ function refreshVietnameseVoices() {
   if (voices.length === 0) return;
 
   preferredVietnameseVoice = chooseVietnameseVoice(voices);
-  if (pendingSpeechStart) {
+  if (pendingSpeechStart && isExplicitlyPreferredVietnameseVoice(preferredVietnameseVoice)) {
     window.clearTimeout(speechVoiceLoadTimer);
     speechVoiceLoadTimer = null;
     const start = pendingSpeechStart;
@@ -926,7 +941,8 @@ function speakText(text, onEnd) {
   utterance.onerror = finish;
 
   const voices = window.speechSynthesis.getVoices();
-  if (voices.length > 0) {
+  const bestAvailableVoice = chooseVietnameseVoice(voices);
+  if (isExplicitlyPreferredVietnameseVoice(bestAvailableVoice)) {
     startUtterance();
   } else {
     pendingSpeechStart = startUtterance;
@@ -934,7 +950,7 @@ function speakText(text, onEnd) {
       speechVoiceLoadTimer = null;
       pendingSpeechStart = null;
       startUtterance();
-    }, 500);
+    }, 1200);
   }
   return true;
 }
