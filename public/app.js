@@ -14,6 +14,11 @@ let currentResultData = null;
 let preferredVietnameseVoice = null;
 let pendingSpeechStart = null;
 let speechVoiceLoadTimer = null;
+let currentAudio = null;
+let currentAudioFallback = null;
+let audioQueue = [];
+let audioQueueIndex = 0;
+let audioPlaybackToken = 0;
 let isSpeechActive = false;
 let currentUtterance = null;
 let isSpeechPaused = false;
@@ -369,7 +374,7 @@ async function runOcrOnImage(file) {
       ocrErrorMessage.classList.add('is-info');
       ocrErrorMessage.textContent = '⚠️ Ảnh này chưa phù hợp để kiểm tra. Bạn vui lòng tải ảnh chụp hợp lệ có nội dung tin nhắn từ SMS, Zalo hoặc Facebook, hoặc dán nội dung tin nhắn vào ô nhập.';
       ocrErrorMessage.style.display = 'block';
-      speakText('Ảnh này chưa có nội dung tin nhắn phù hợp. Bạn vui lòng chọn ảnh chụp tin nhắn hợp lệ nhé!');
+      speakStaticText('Ảnh này chưa có nội dung tin nhắn phù hợp. Bạn vui lòng chọn ảnh chụp tin nhắn hợp lệ nhé!');
       return;
     }
 
@@ -811,11 +816,21 @@ ttsBtn.addEventListener('click', () => {
 function toggleSpeech() {
   if (isSpeechActive) {
     if (isSpeechPaused) {
-      window.speechSynthesis.resume();
+      if (currentAudio) {
+        const playback = currentAudio.play();
+        if (playback && typeof playback.catch === 'function') {
+          playback.catch(() => {
+            if (currentAudioFallback) currentAudioFallback();
+          });
+        }
+      } else {
+        window.speechSynthesis.resume();
+      }
       isSpeechPaused = false;
       ttsBtn.textContent = '⏸️ Tạm dừng đọc';
     } else {
-      window.speechSynthesis.pause();
+      if (currentAudio) currentAudio.pause();
+      else window.speechSynthesis.pause();
       isSpeechPaused = true;
       ttsBtn.textContent = '▶️ Đọc tiếp';
     }
@@ -845,6 +860,76 @@ function getResultSpeechText() {
 
 function speakResult() {
   speakText(getResultSpeechText());
+}
+
+function speakStaticText(text, onEnd) {
+  if (typeof Audio !== 'function' || !navigator.onLine) {
+    speakText(text, onEnd);
+    return;
+  }
+
+  stopSpeaking();
+  audioQueue = MessageTts.splitText(text);
+  audioQueueIndex = 0;
+  const playbackToken = ++audioPlaybackToken;
+  isSpeechActive = true;
+  isSpeechPaused = false;
+  ttsBtn.textContent = '⏸️ Tạm dừng đọc';
+
+  const finish = () => {
+    if (playbackToken !== audioPlaybackToken) return;
+    currentAudio = null;
+    currentAudioFallback = null;
+    audioQueue = [];
+    resetSpeechState();
+    if (onEnd) onEnd();
+  };
+
+  const fallbackToDevice = () => {
+    if (playbackToken !== audioPlaybackToken) return;
+    const remainingText = audioQueue.slice(audioQueueIndex).join(' ');
+    speakText(remainingText || text, onEnd);
+  };
+  currentAudioFallback = fallbackToDevice;
+
+  const playNext = () => {
+    if (playbackToken !== audioPlaybackToken) return;
+    if (audioQueueIndex >= audioQueue.length) {
+      finish();
+      return;
+    }
+
+    const sentence = audioQueue[audioQueueIndex];
+    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=${encodeURIComponent(sentence)}`;
+    let audio;
+    try {
+      audio = new Audio(audioUrl);
+    } catch (error) {
+      fallbackToDevice();
+      return;
+    }
+    currentAudio = audio;
+    audio.volume = 1;
+    audio.onended = () => {
+      if (playbackToken !== audioPlaybackToken) return;
+      currentAudio = null;
+      audioQueueIndex += 1;
+      playNext();
+    };
+    audio.onerror = fallbackToDevice;
+
+    try {
+      const playback = audio.play();
+      if (playback && typeof playback.catch === 'function') {
+        playback.catch(fallbackToDevice);
+      }
+    } catch (error) {
+      fallbackToDevice();
+    }
+  };
+
+  ttsBtn.classList.add('speaking');
+  playNext();
 }
 
 function chooseVietnameseVoice(voices) {
@@ -963,6 +1048,17 @@ function resetSpeechState() {
 }
 
 function stopSpeaking() {
+  audioPlaybackToken += 1;
+  currentAudioFallback = null;
+  if (currentAudio) {
+    currentAudio.onended = null;
+    currentAudio.onerror = null;
+    currentAudio.pause();
+    currentAudio.src = '';
+    currentAudio = null;
+  }
+  audioQueue = [];
+  audioQueueIndex = 0;
   currentUtterance = null;
   pendingSpeechStart = null;
   if (speechVoiceLoadTimer) {
@@ -1179,7 +1275,7 @@ function stopSmsVoiceRecognition() {
 
 function speakSmsPrompt(text, next) {
   setSmsVoiceStatus('Đang đọc câu hỏi...');
-  speakText(text, () => {
+  speakStaticText(text, () => {
     if (smsVoiceFlowActive) next();
   });
 }
@@ -1207,7 +1303,7 @@ function handleSmsVoiceCommand(command, stage) {
     smsVoiceFlowActive = false;
     smsVoiceStage = null;
     smsVoicePageActions.hidden = true;
-    speakText(SMS_DEMO_ALERT, () => {
+    speakStaticText(SMS_DEMO_ALERT, () => {
       smsVoicePageStatus.hidden = true;
     });
   } else {
@@ -1215,7 +1311,7 @@ function handleSmsVoiceCommand(command, stage) {
     smsVoiceFlowActive = false;
     smsVoiceStage = null;
     smsVoicePageActions.hidden = true;
-    speakText('Đã hoàn thành kiểm tra.', () => {
+    speakStaticText('Đã hoàn thành kiểm tra.', () => {
       smsVoicePageStatus.hidden = true;
     });
   }
@@ -1228,7 +1324,7 @@ function speakSmsDemoAlert(askToRepeat) {
     return;
   }
 
-  speakText(SMS_DEMO_ALERT, () => {
+  speakStaticText(SMS_DEMO_ALERT, () => {
     if (!askToRepeat || !smsVoiceFlowActive) return;
     smsVoiceRetryCount = 0;
     smsVoiceStage = 'repeat';
@@ -1253,7 +1349,7 @@ function dismissSmsDemo() {
   stopSmsVoiceRecognition();
   if (smsDemoDialog.open) smsDemoDialog.close();
   setSmsVoiceStatus('Đã bỏ qua tin nhắn này.');
-  speakText('Đã bỏ qua tin nhắn này.');
+  speakStaticText('Đã bỏ qua tin nhắn này.');
 }
 
 function cancelSmsVoiceFlow() {

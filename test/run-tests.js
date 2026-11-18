@@ -278,6 +278,15 @@ console.log('================================================================\n'
     app.includes('utterance.rate = 0.9') &&
     app.includes('utterance.pitch = 1.08') &&
     app.includes('utterance.volume = 1') &&
+    app.includes('MessageTts.splitText(text)') &&
+    app.includes('function speakStaticText(text, onEnd)') &&
+    app.includes('https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=') &&
+    app.includes('encodeURIComponent(sentence)') &&
+    app.includes('audio.onerror = fallbackToDevice') &&
+    app.includes('audio.volume = 1') &&
+    app.includes('speakText(remainingText || text, onEnd)') &&
+    app.includes('if (currentAudio) currentAudio.pause()') &&
+    app.includes('speakText(getResultSpeechText())') &&
     app.includes('function chooseVietnameseVoice(voices)') &&
     app.includes('google.*tieng viet|vi[-_]vn[-_]standard[-_]a') &&
     app.includes('hoai\\s*-?\\s*my|microsoft.*hoai\\s*-?\\s*my.*natural') &&
@@ -287,6 +296,8 @@ console.log('================================================================\n'
     app.includes('window.speechSynthesis.onvoiceschanged = refreshVietnameseVoices') &&
     app.includes('pendingSpeechStart = startUtterance') &&
     app.includes('}, 1200)') &&
+    html.includes('ttsUtils.js') &&
+    html.includes('Câu hướng dẫn chung dùng Google TTS; kết quả kiểm tra được đọc trên thiết bị.') &&
     app.includes('window.speechSynthesis.pause()') &&
     app.includes('window.speechSynthesis.resume()') &&
     css.includes('.speech-input-button.is-listening') &&
