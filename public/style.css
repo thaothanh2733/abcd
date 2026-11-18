@@ -466,6 +466,14 @@ body.dark-mode .clear-history-button {
   font-size: 0.88rem;
 }
 
+.checker-privacy-note {
+  margin: 0.55rem 0 0;
+  color: #64737d;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+}
+
 .checker-surface {
   padding: clamp(1rem, 4vw, 2rem);
   border: 1px solid var(--line);
@@ -752,9 +760,13 @@ body.dark-mode .clear-history-button {
 }
 
 .speech-input-button {
+  min-height: 64px;
+  padding: 0.75rem 1rem;
   border: 2px solid #087c70;
   background: #d9f4ed;
   color: #123d36;
+  font-size: 1.1rem;
+  font-weight: 900;
 }
 
 .speech-input-button.is-listening {
@@ -764,8 +776,7 @@ body.dark-mode .clear-history-button {
   animation: listening-pulse 1.2s ease-in-out infinite;
 }
 
-.speech-input-status,
-.speech-privacy-note {
+.speech-input-status {
   margin: 0.45rem 0 0;
   color: var(--muted);
   font-size: 1rem;
@@ -1458,6 +1469,11 @@ body.dark-mode .textarea-footer {
   color: #f8fafc;
   font-size: 1rem;
   font-weight: 500;
+}
+
+body.dark-mode .checker-privacy-note {
+  color: #b0b0b0;
+  font-size: 0.9rem;
 }
 
 body.dark-mode .input-tabs,

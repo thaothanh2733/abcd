@@ -297,7 +297,12 @@ console.log('================================================================\n'
     app.includes('pendingSpeechStart = startUtterance') &&
     app.includes('}, 1200)') &&
     html.includes('ttsUtils.js') &&
-    html.includes('Câu hướng dẫn chung dùng Google TTS; kết quả kiểm tra được đọc trên thiết bị.') &&
+    html.includes('Bảo đảm riêng tư: Hệ thống không lưu trữ tin nhắn của bạn.') &&
+    html.indexOf('id="analyzeBtn"') < html.indexOf('class="privacy-note checker-privacy-note"') &&
+    html.indexOf('class="privacy-note checker-privacy-note"') < html.indexOf('id="smsDemoBtn"') &&
+    !html.includes('Che mã OTP, mật khẩu và số tài khoản trước khi kiểm tra.') &&
+    !html.includes('Trình duyệt có thể xử lý giọng nói qua dịch vụ nhận dạng') &&
+    /\.speech-input-button\s*\{\s*min-height:\s*64px;/.test(css) &&
     app.includes('window.speechSynthesis.pause()') &&
     app.includes('window.speechSynthesis.resume()') &&
     css.includes('.speech-input-button.is-listening') &&
