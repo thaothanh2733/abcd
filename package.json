@@ -8,7 +8,7 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node test/run-tests.js && node test/history.test.js && node test/ocr-validation.test.js && node test/gemini-fallback.test.js",
-    "deploy": "git add . && git commit -m \"auto update\" && git push origin main"
+    "deploy": "git add . && git commit -m \"Update Vietnamese voice playback\" -m \"Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\" && git push origin main"
   },
   "keywords": [
     "ai",

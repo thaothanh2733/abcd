@@ -275,7 +275,16 @@ console.log('================================================================\n'
     app.includes("const SMS_DEMO_QUESTION = 'Bạn vừa nhận được một tin nhắn lạ.") &&
     app.includes("const SMS_DEMO_ALERT = 'Xin thông báo: Tin nhắn này NGUY HIỂM CAO.") &&
     app.includes('SMS_REPEAT_QUESTION') &&
-    app.includes('utterance.rate = 0.85') &&
+    app.includes('utterance.rate = 0.9') &&
+    app.includes('utterance.pitch = 1.08') &&
+    app.includes('utterance.volume = 1') &&
+    app.includes('function chooseVietnameseVoice(voices)') &&
+    app.includes('google tiếng việt|vi-vn-standard-a') &&
+    app.includes('hoaimy|microsoft hoaimy online') &&
+    app.includes('vietnamese\\s*\\(female\\)') &&
+    app.includes('/^vi[-_]vn$/i') &&
+    app.includes('window.speechSynthesis.onvoiceschanged = refreshVietnameseVoices') &&
+    app.includes('pendingSpeechStart = startUtterance') &&
     app.includes('window.speechSynthesis.pause()') &&
     app.includes('window.speechSynthesis.resume()') &&
     css.includes('.speech-input-button.is-listening') &&

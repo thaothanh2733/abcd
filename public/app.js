@@ -11,6 +11,9 @@ let currentPreviewUrl = null;
 let currentExtractedText = '';
 let currentResultText = '';
 let currentResultData = null;
+let preferredVietnameseVoice = null;
+let pendingSpeechStart = null;
+let speechVoiceLoadTimer = null;
 let isSpeechActive = false;
 let currentUtterance = null;
 let isSpeechPaused = false;
@@ -844,6 +847,41 @@ function speakResult() {
   speakText(getResultSpeechText());
 }
 
+function chooseVietnameseVoice(voices) {
+  const voicePriorityPatterns = [
+    /google tiếng việt|vi-vn-standard-a/i,
+    /hoaimy|microsoft hoaimy online \(natural\) - vietnamese/i,
+    /\blinh\b|vietnamese\s*\(female\)/i
+  ];
+
+  for (const pattern of voicePriorityPatterns) {
+    const match = voices.find((voice) => pattern.test(voice.name));
+    if (match) return match;
+  }
+
+  return voices.find((voice) => /^vi[-_]vn$/i.test(voice.lang)) || null;
+}
+
+function refreshVietnameseVoices() {
+  if (!('speechSynthesis' in window)) return;
+  const voices = window.speechSynthesis.getVoices();
+  if (voices.length === 0) return;
+
+  preferredVietnameseVoice = chooseVietnameseVoice(voices);
+  if (pendingSpeechStart) {
+    window.clearTimeout(speechVoiceLoadTimer);
+    speechVoiceLoadTimer = null;
+    const start = pendingSpeechStart;
+    pendingSpeechStart = null;
+    start();
+  }
+}
+
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = refreshVietnameseVoices;
+  refreshVietnameseVoices();
+}
+
 function speakText(text, onEnd) {
   if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance !== 'function') {
     ttsBtn.textContent = resultCard.style.display === 'block'
@@ -857,11 +895,19 @@ function speakText(text, onEnd) {
   currentUtterance = new SpeechSynthesisUtterance(text);
   const utterance = currentUtterance;
   utterance.lang = 'vi-VN';
-  utterance.rate = 0.85;
+  utterance.rate = 0.9;
+  utterance.pitch = 1.08;
   utterance.volume = 1;
   isSpeechPaused = false;
   isSpeechActive = true;
   ttsBtn.textContent = '⏸️ Tạm dừng đọc';
+
+  const startUtterance = () => {
+    if (currentUtterance !== utterance) return;
+    const voices = window.speechSynthesis.getVoices();
+    utterance.voice = chooseVietnameseVoice(voices) || preferredVietnameseVoice;
+    window.speechSynthesis.speak(utterance);
+  };
 
   utterance.onstart = () => {
     if (currentUtterance !== utterance) return;
@@ -879,7 +925,17 @@ function speakText(text, onEnd) {
   utterance.onend = finish;
   utterance.onerror = finish;
 
-  window.speechSynthesis.speak(utterance);
+  const voices = window.speechSynthesis.getVoices();
+  if (voices.length > 0) {
+    startUtterance();
+  } else {
+    pendingSpeechStart = startUtterance;
+    speechVoiceLoadTimer = window.setTimeout(() => {
+      speechVoiceLoadTimer = null;
+      pendingSpeechStart = null;
+      startUtterance();
+    }, 500);
+  }
   return true;
 }
 
@@ -892,6 +948,11 @@ function resetSpeechState() {
 
 function stopSpeaking() {
   currentUtterance = null;
+  pendingSpeechStart = null;
+  if (speechVoiceLoadTimer) {
+    window.clearTimeout(speechVoiceLoadTimer);
+    speechVoiceLoadTimer = null;
+  }
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
