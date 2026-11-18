@@ -74,6 +74,14 @@
               <span id="charCount" aria-live="polite">0 ký tự</span>
               <button type="button" class="glass-button secondary-button" id="clearTextBtn">Xóa nội dung</button>
             </div>
+            <div class="quick-test-group" role="group" aria-label="Bấm thử tin nhắn mẫu">
+              <p class="quick-test-title">Hoặc bấm thử tin nhắn mẫu:</p>
+              <div class="quick-test-buttons">
+                <button type="button" class="glass-button quick-test-button" data-quick-test="bank">🏦 Thử tin giả ngân hàng</button>
+                <button type="button" class="glass-button quick-test-button" data-quick-test="police">👮 Thử tin công an dọa bắt</button>
+                <button type="button" class="glass-button quick-test-button" data-quick-test="prize">🎁 Thử tin trúng xe SH</button>
+              </div>
+            </div>
           </div>
 
           <div class="tab-pane" id="tab-image" role="tabpanel">
@@ -136,6 +144,7 @@
           <div class="result-share-section">
             <button type="button" class="glass-button share-result-button" id="shareResultBtn">📲 GỬI KẾT QUẢ CHO NGƯỜI THÂN QUA ZALO</button>
             <p class="share-result-status" id="shareResultStatus" role="status" aria-live="polite"></p>
+            <a class="emergency-call-link" id="emergencyCallLink" href="tel:156" hidden>📞 Báo tin nhắn/cuộc gọi lừa đảo: Gọi Tổng đài 156 (Miễn phí)</a>
           </div>
           <details class="result-disclosure">
             <summary>Dấu hiệu nhận biết</summary>
@@ -149,6 +158,16 @@
         </div>
       </section>
       <button type="button" class="glass-button reset-button" id="resetBtn">Kiểm tra tin nhắn khác</button>
+    </section>
+
+    <section class="slow-rules-card" id="slowRulesCard" aria-labelledby="slowRulesTitle">
+      <h2 id="slowRulesTitle">🛡️ NGUYÊN TẮC “3 CHẬM” KHI NHẬN TIN LẠ</h2>
+      <ol class="slow-rules-list">
+        <li><span aria-hidden="true">⏳</span><span><strong>CHẬM LẠI:</strong> Không vội làm theo, không hoảng sợ.</span></li>
+        <li><span aria-hidden="true">🔒</span><span><strong>CHẬM BẤM:</strong> Không bấm vào liên kết lạ, không gửi mã OTP.</span></li>
+        <li><span aria-hidden="true">📞</span><span><strong>CHẬM CHUYỂN:</strong> Luôn gọi điện thoại cho con cháu trước khi chuyển tiền.</span></li>
+      </ol>
+      <button type="button" class="glass-button tts-button three-slow-speak-button" id="slowRulesSpeakBtn">🔊 BẤM ĐỂ NGHE 3 NGUYÊN TẮC</button>
     </section>
   </main>
 

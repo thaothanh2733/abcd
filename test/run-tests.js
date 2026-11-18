@@ -279,14 +279,14 @@ console.log('================================================================\n'
     app.includes('utterance.pitch = 1.08') &&
     app.includes('utterance.volume = 1') &&
     app.includes('MessageTts.splitText(text)') &&
-    app.includes('function speakStaticText(text, onEnd)') &&
+    app.includes('function speakStaticText(text, onEnd, controlButton = ttsBtn)') &&
     app.includes('https://translate.google.com/translate_tts?ie=UTF-8&tl=vi&client=tw-ob&q=') &&
     app.includes('encodeURIComponent(sentence)') &&
     app.includes('audio.onerror = fallbackToDevice') &&
     app.includes('audio.volume = 1') &&
-    app.includes('speakText(remainingText || text, onEnd)') &&
+    app.includes('speakText(remainingText || text, onEnd, controlButton)') &&
     app.includes('if (currentAudio) currentAudio.pause()') &&
-    app.includes('speakText(getResultSpeechText())') &&
+    app.includes('speakText(getResultSpeechText(), null, ttsBtn)') &&
     app.includes('function chooseVietnameseVoice(voices)') &&
     app.includes('google.*tieng viet|vi[-_]vn[-_]standard[-_]a') &&
     app.includes('hoai\\s*-?\\s*my|microsoft.*hoai\\s*-?\\s*my.*natural') &&
@@ -336,14 +336,35 @@ console.log('================================================================\n'
     app.includes('ocrRecognitionQueue') &&
     css.includes('.share-result-button') &&
     css.includes('.ocr-error-message.is-info');
+  const hasSeniorQuickSafetyFeatures = html.includes('data-quick-test="bank"') &&
+    html.includes('data-quick-test="police"') &&
+    html.includes('data-quick-test="prize"') &&
+    app.includes('const QUICK_TEST_MESSAGES = {') &&
+    app.includes('textInput.value = sample;') &&
+    app.includes('handleAnalyze();') &&
+    app.includes('quickTestButtons.forEach((button) => {') &&
+    app.includes("emergencyCallLink.hidden = data.alert_level !== 'NGUY HIỂM CAO'") &&
+    html.includes('href="tel:156"') &&
+    html.includes('id="slowRulesCard"') &&
+    html.includes('id="slowRulesSpeakBtn"') &&
+    html.includes('liên kết lạ') &&
+    app.includes('const SLOW_RULES_SPEECH_TEXT =') &&
+    app.includes('speakStaticText(SLOW_RULES_SPEECH_TEXT, null, button)') &&
+    app.includes('function syncSlowRulesVisibility()') &&
+    css.includes('.quick-test-button') &&
+    css.includes('body.dark-mode .quick-test-button') &&
+    css.includes('body.dark-mode .emergency-call-link') &&
+    css.includes('body.dark-mode .slow-rules-card') &&
+    css.includes('.slow-rules-card[hidden]');
   const pass = hasMobileMedia && hasFontScaling && hasSeniorFriendlyResults &&
     hasThemeToggle && hasDarkPalette && hasDarkModeFocus && hasReadableDarkHelpers &&
-    hasHistorySidebar && hasVoiceAndSmsAccessibility && hasPerformanceAndSharing;
+    hasHistorySidebar && hasVoiceAndSmsAccessibility && hasPerformanceAndSharing &&
+    hasSeniorQuickSafetyFeatures;
   recordTest(
     11,
     'Sử dụng trên giao diện điện thoại & trợ năng người cao tuổi',
-    'Giao diện mobile, tăng/giảm chữ 4px, kết quả đúng thứ tự và bỏ kịch bản/nội dung sao chép',
-    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}, Bảng màu tối: ${hasDarkPalette}, Focus rõ: ${hasDarkModeFocus}, Chữ phụ dễ đọc: ${hasReadableDarkHelpers}, Sidebar lịch sử: ${hasHistorySidebar}, Giọng nói và SMS demo: ${hasVoiceAndSmsAccessibility}, Chia sẻ và hiệu năng: ${hasPerformanceAndSharing}`,
+    'Giao diện mobile, tăng/giảm chữ 4px, kết quả đúng thứ tự, mẫu nhanh và nguyên tắc an toàn',
+    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}, Bảng màu tối: ${hasDarkPalette}, Focus rõ: ${hasDarkModeFocus}, Chữ phụ dễ đọc: ${hasReadableDarkHelpers}, Sidebar lịch sử: ${hasHistorySidebar}, Giọng nói và SMS demo: ${hasVoiceAndSmsAccessibility}, Chia sẻ và hiệu năng: ${hasPerformanceAndSharing}, Mẫu nhanh/156/3 chậm: ${hasSeniorQuickSafetyFeatures}`,
     pass,
     pass ? 'Đạt tiêu chuẩn UI/UX người cao tuổi' : 'Thiếu responsive hoặc trợ năng'
   );

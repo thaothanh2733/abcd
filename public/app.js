@@ -20,6 +20,7 @@ let audioQueue = [];
 let audioQueueIndex = 0;
 let audioPlaybackToken = 0;
 let isSpeechActive = false;
+let activeSpeechButton = null;
 let currentUtterance = null;
 let isSpeechPaused = false;
 let speechRecognition = null;
@@ -32,6 +33,12 @@ let smsVoiceError = null;
 let smsVoiceRetryCount = 0;
 let smsVoiceFlowActive = false;
 let isServerOnline = false;
+const QUICK_TEST_MESSAGES = {
+  bank: 'Thông báo từ ngân hàng: Tài khoản của bạn sẽ bị khóa trong 24 giờ. Hãy gửi mã OTP để xác minh ngay.',
+  police: 'Công an thông báo bạn liên quan vụ án. Chuyển tiền vào tài khoản xác minh ngay, nếu không sẽ có lệnh bắt.',
+  prize: 'Chúc mừng bạn đã trúng thưởng xe SH. Vui lòng nộp phí nhận quà ngay hôm nay.'
+};
+const SLOW_RULES_SPEECH_TEXT = 'Nguyên tắc 3 chậm khi nhận tin lạ: Một, chậm lại: không vội làm theo, không hoảng sợ. Hai, chậm bấm: không bấm vào liên kết lạ, không gửi mã OTP. Ba, chậm chuyển: luôn gọi điện thoại cho con cháu trước khi chuyển tiền.';
 
 // DOM Elements
 const tabBtns = document.querySelectorAll('.tab-btn');
@@ -63,6 +70,10 @@ const safetyReminderText = document.getElementById('safetyReminderText');
 const ttsBtn = document.getElementById('ttsBtn');
 const shareResultBtn = document.getElementById('shareResultBtn');
 const shareResultStatus = document.getElementById('shareResultStatus');
+const emergencyCallLink = document.getElementById('emergencyCallLink');
+const slowRulesCard = document.getElementById('slowRulesCard');
+const slowRulesSpeakBtn = document.getElementById('slowRulesSpeakBtn');
+const quickTestButtons = document.querySelectorAll('.quick-test-button');
 const resetBtn = document.getElementById('resetBtn');
 
 // Accessibility controls
@@ -488,6 +499,8 @@ function handleSelectedImage(file) {
   ocrErrorMessage.textContent = '';
   ocrErrorMessage.classList.remove('is-info');
   resultCard.style.display = 'none';
+  syncSlowRulesVisibility();
+  emergencyCallLink.hidden = true;
   resetBtn.style.display = 'none';
   updateCharCount();
   if (currentPreviewUrl) URL.revokeObjectURL(currentPreviewUrl);
@@ -530,9 +543,26 @@ function refreshAnalyzeButton() {
   const isLocked = analysisInProgress || ocrIsRunning || isCoolingDown;
   analyzeBtn.disabled = isLocked;
   smsDemoBtn.disabled = isLocked;
+  quickTestButtons.forEach((button) => {
+    button.disabled = isLocked;
+  });
   analyzeBtn.setAttribute('aria-busy', String(analysisInProgress || ocrIsRunning));
   analyzeBtn.textContent = isLocked ? 'Đang kiểm tra...' : 'Kiểm tra tin nhắn';
 }
+
+quickTestButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    const sample = QUICK_TEST_MESSAGES[button.dataset.quickTest];
+    if (!sample || analysisInProgress || ocrIsRunning || Date.now() < analysisCooldownUntil) return;
+
+    if (currentFile) removeImgBtn.click();
+    if (!tabBtns[0].classList.contains('active')) tabBtns[0].click();
+    textInput.value = sample;
+    updateCharCount();
+    textInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    handleAnalyze();
+  });
+});
 
 function beginAnalysisAttempt() {
   if (analysisInProgress || ocrIsRunning || Date.now() < analysisCooldownUntil) return false;
@@ -585,6 +615,8 @@ async function handleAnalyze(options = {}) {
   // 1. Hiển thị trạng thái đang xử lý
   loadingBox.style.display = 'block';
   resultCard.style.display = 'none';
+  syncSlowRulesVisibility();
+  emergencyCallLink.hidden = true;
   refreshAnalyzeButton();
   loadingBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
@@ -638,6 +670,10 @@ async function handleAnalyze(options = {}) {
 // ==========================================================================
 // 8. KẾT XUẤT KẾT QUẢ PHÂN TÍCH (RENDER RESULT)
 // ==========================================================================
+function syncSlowRulesVisibility() {
+  slowRulesCard.hidden = resultCard.style.display === 'block';
+}
+
 function renderResult(data, options = {}) {
   currentResultText = typeof options.historyText === 'string'
     ? options.historyText
@@ -656,6 +692,8 @@ function renderResult(data, options = {}) {
 
   resultCard.classList.add(levelClass);
   resultCard.style.display = 'block';
+  syncSlowRulesVisibility();
+  emergencyCallLink.hidden = data.alert_level !== 'NGUY HIỂM CAO';
   resetBtn.style.display = 'inline-flex';
   resultCard.querySelectorAll('.result-disclosure').forEach((disclosure) => {
     disclosure.open = false;
@@ -810,11 +848,13 @@ shareResultBtn.addEventListener('click', async () => {
 // ==========================================================================
 ttsBtn.addEventListener('click', () => {
   cancelSmsVoiceFlow();
-  toggleSpeech();
+  toggleSpeech(ttsBtn);
 });
+slowRulesSpeakBtn.addEventListener('click', () => toggleSpeech(slowRulesSpeakBtn));
 
-function toggleSpeech() {
+function toggleSpeech(button = ttsBtn) {
   if (isSpeechActive) {
+    const controlButton = activeSpeechButton || button;
     if (isSpeechPaused) {
       if (currentAudio) {
         const playback = currentAudio.play();
@@ -827,17 +867,21 @@ function toggleSpeech() {
         window.speechSynthesis.resume();
       }
       isSpeechPaused = false;
-      ttsBtn.textContent = '⏸️ Tạm dừng đọc';
+      controlButton.textContent = '⏸️ Tạm dừng đọc';
     } else {
       if (currentAudio) currentAudio.pause();
       else window.speechSynthesis.pause();
       isSpeechPaused = true;
-      ttsBtn.textContent = '▶️ Đọc tiếp';
+      controlButton.textContent = '▶️ Đọc tiếp';
     }
     return;
   }
 
-  speakResult();
+  if (button === slowRulesSpeakBtn) {
+    speakStaticText(SLOW_RULES_SPEECH_TEXT, null, button);
+  } else {
+    speakResult();
+  }
 }
 
 function getResultSpeechText() {
@@ -859,36 +903,38 @@ function getResultSpeechText() {
 }
 
 function speakResult() {
-  speakText(getResultSpeechText());
+  speakText(getResultSpeechText(), null, ttsBtn);
 }
 
-function speakStaticText(text, onEnd) {
+function speakStaticText(text, onEnd, controlButton = ttsBtn) {
   if (typeof Audio !== 'function' || !navigator.onLine) {
-    speakText(text, onEnd);
+    speakText(text, onEnd, controlButton);
     return;
   }
 
   stopSpeaking();
+  activeSpeechButton = controlButton;
   audioQueue = MessageTts.splitText(text);
   audioQueueIndex = 0;
   const playbackToken = ++audioPlaybackToken;
   isSpeechActive = true;
   isSpeechPaused = false;
-  ttsBtn.textContent = '⏸️ Tạm dừng đọc';
+  controlButton.textContent = '⏸️ Tạm dừng đọc';
 
   const finish = () => {
     if (playbackToken !== audioPlaybackToken) return;
     currentAudio = null;
     currentAudioFallback = null;
     audioQueue = [];
-    resetSpeechState();
+    resetSpeechState(controlButton);
+    activeSpeechButton = null;
     if (onEnd) onEnd();
   };
 
   const fallbackToDevice = () => {
     if (playbackToken !== audioPlaybackToken) return;
     const remainingText = audioQueue.slice(audioQueueIndex).join(' ');
-    speakText(remainingText || text, onEnd);
+    speakText(remainingText || text, onEnd, controlButton);
   };
   currentAudioFallback = fallbackToDevice;
 
@@ -928,7 +974,7 @@ function speakStaticText(text, onEnd) {
     }
   };
 
-  ttsBtn.classList.add('speaking');
+  controlButton.classList.add('speaking');
   playNext();
 }
 
@@ -982,16 +1028,17 @@ if ('speechSynthesis' in window) {
   refreshVietnameseVoices();
 }
 
-function speakText(text, onEnd) {
+function speakText(text, onEnd, controlButton = ttsBtn) {
   if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance !== 'function') {
-    ttsBtn.textContent = resultCard.style.display === 'block'
-      ? 'Trình duyệt chưa hỗ trợ đọc giọng nói'
+    controlButton.textContent = controlButton === slowRulesSpeakBtn
+      ? '🔊 BẤM ĐỂ NGHE 3 NGUYÊN TẮC'
       : '🔊 NGHE KẾT QUẢ';
     if (onEnd) onEnd();
     return false;
   }
 
   stopSpeaking();
+  activeSpeechButton = controlButton;
   currentUtterance = new SpeechSynthesisUtterance(text);
   const utterance = currentUtterance;
   utterance.lang = 'vi-VN';
@@ -1000,7 +1047,7 @@ function speakText(text, onEnd) {
   utterance.volume = 1;
   isSpeechPaused = false;
   isSpeechActive = true;
-  ttsBtn.textContent = '⏸️ Tạm dừng đọc';
+  controlButton.textContent = '⏸️ Tạm dừng đọc';
 
   const startUtterance = () => {
     if (currentUtterance !== utterance) return;
@@ -1012,13 +1059,14 @@ function speakText(text, onEnd) {
   utterance.onstart = () => {
     if (currentUtterance !== utterance) return;
     isSpeechActive = true;
-    ttsBtn.classList.add('speaking');
+    controlButton.classList.add('speaking');
   };
 
   const finish = () => {
     if (currentUtterance !== utterance) return;
     currentUtterance = null;
-    resetSpeechState();
+    resetSpeechState(controlButton);
+    activeSpeechButton = null;
     if (onEnd) onEnd();
   };
 
@@ -1040,14 +1088,17 @@ function speakText(text, onEnd) {
   return true;
 }
 
-function resetSpeechState() {
+function resetSpeechState(controlButton = activeSpeechButton || ttsBtn) {
   isSpeechActive = false;
   isSpeechPaused = false;
-  ttsBtn.classList.remove('speaking');
-  ttsBtn.textContent = '🔊 NGHE KẾT QUẢ';
+  controlButton.classList.remove('speaking');
+  controlButton.textContent = controlButton === slowRulesSpeakBtn
+    ? '🔊 BẤM ĐỂ NGHE 3 NGUYÊN TẮC'
+    : '🔊 NGHE KẾT QUẢ';
 }
 
 function stopSpeaking() {
+  const controlButton = activeSpeechButton;
   audioPlaybackToken += 1;
   currentAudioFallback = null;
   if (currentAudio) {
@@ -1068,7 +1119,8 @@ function stopSpeaking() {
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
-  resetSpeechState();
+  resetSpeechState(controlButton || ttsBtn);
+  activeSpeechButton = null;
 }
 
 function createSpeechRecognition() {
@@ -1409,6 +1461,8 @@ function startNewCheck(options = {}) {
   textInput.value = '';
   updateCharCount();
   resultCard.style.display = 'none';
+  syncSlowRulesVisibility();
+  emergencyCallLink.hidden = true;
   resetBtn.style.display = 'none';
   currentHistoryId = null;
   updateHistorySelection();
