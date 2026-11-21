@@ -1007,6 +1007,17 @@ body.dark-mode .clear-history-button {
   padding: clamp(1rem, 4vw, 1.75rem);
 }
 
+.speech-playback-status {
+  margin: 0 0 0.8rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.speech-playback-status:empty {
+  display: none;
+}
+
 .tts-button {
   min-width: 240px;
   min-height: 68px;

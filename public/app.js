@@ -12,13 +12,12 @@ let currentExtractedText = '';
 let currentResultText = '';
 let currentResultData = null;
 let preferredVietnameseVoice = null;
-let pendingSpeechStart = null;
-let speechVoiceLoadTimer = null;
 let currentAudio = null;
 let currentAudioFallback = null;
 let audioQueue = [];
 let audioQueueIndex = 0;
 let audioPlaybackToken = 0;
+let speechStartTimer = null;
 let isSpeechActive = false;
 let activeSpeechButton = null;
 let currentUtterance = null;
@@ -68,6 +67,8 @@ const detectedList = document.getElementById('detectedList');
 const actionsList = document.getElementById('actionsList');
 const safetyReminderText = document.getElementById('safetyReminderText');
 const ttsBtn = document.getElementById('ttsBtn');
+const speechPlaybackStatus = document.getElementById('speechPlaybackStatus');
+const slowRulesSpeechStatus = document.getElementById('slowRulesSpeechStatus');
 const shareResultBtn = document.getElementById('shareResultBtn');
 const shareResultStatus = document.getElementById('shareResultStatus');
 const emergencyCallLink = document.getElementById('emergencyCallLink');
@@ -702,6 +703,7 @@ function renderResult(data, options = {}) {
   // 1. Mức độ cảnh báo
   alertLevelText.textContent = data.alert_level;
   shareResultStatus.textContent = '';
+  speechPlaybackStatus.textContent = '';
 
   // 2. Vì sao tin nhắn đáng ngờ?
   explanationText.textContent = data.explanation;
@@ -907,6 +909,10 @@ function speakResult() {
 }
 
 function speakStaticText(text, onEnd, controlButton = ttsBtn) {
+  if (isMobileSpeechEnvironment() && hasSpeechSynthesisSupport()) {
+    if (speakText(text, onEnd, controlButton)) return;
+  }
+
   if (typeof Audio !== 'function' || !navigator.onLine) {
     speakText(text, onEnd, controlButton);
     return;
@@ -919,6 +925,7 @@ function speakStaticText(text, onEnd, controlButton = ttsBtn) {
   const playbackToken = ++audioPlaybackToken;
   isSpeechActive = true;
   isSpeechPaused = false;
+  setSpeechPlaybackStatus(controlButton, '');
   controlButton.textContent = '⏸️ Tạm dừng đọc';
 
   const finish = () => {
@@ -928,6 +935,7 @@ function speakStaticText(text, onEnd, controlButton = ttsBtn) {
     audioQueue = [];
     resetSpeechState(controlButton);
     activeSpeechButton = null;
+    setSpeechPlaybackStatus(controlButton, '');
     if (onEnd) onEnd();
   };
 
@@ -998,29 +1006,12 @@ function chooseVietnameseVoice(voices) {
   return voices.find((voice) => /^vi[-_]vn$/i.test(voice.lang)) || null;
 }
 
-function isExplicitlyPreferredVietnameseVoice(voice) {
-  if (!voice) return false;
-  const name = voice.name
-    .normalize('NFD')
-    .replace(/\p{Diacritic}/gu, '')
-    .replace(/đ/g, 'd')
-    .toLowerCase();
-  return /google.*tieng viet|vi[-_]vn[-_]standard[-_]a|hoai\s*-?\s*my|microsoft.*hoai\s*-?\s*my.*natural|\blinh\b|vietnamese\s*\(female\)/i.test(name);
-}
-
 function refreshVietnameseVoices() {
   if (!('speechSynthesis' in window)) return;
   const voices = window.speechSynthesis.getVoices();
   if (voices.length === 0) return;
 
   preferredVietnameseVoice = chooseVietnameseVoice(voices);
-  if (pendingSpeechStart && isExplicitlyPreferredVietnameseVoice(preferredVietnameseVoice)) {
-    window.clearTimeout(speechVoiceLoadTimer);
-    speechVoiceLoadTimer = null;
-    const start = pendingSpeechStart;
-    pendingSpeechStart = null;
-    start();
-  }
 }
 
 if ('speechSynthesis' in window) {
@@ -1028,12 +1019,29 @@ if ('speechSynthesis' in window) {
   refreshVietnameseVoices();
 }
 
+function hasSpeechSynthesisSupport() {
+  return 'speechSynthesis' in window && typeof SpeechSynthesisUtterance === 'function';
+}
+
+function isMobileSpeechEnvironment() {
+  const hasCoarsePointer = typeof window.matchMedia === 'function' &&
+    window.matchMedia('(pointer: coarse)').matches;
+  return MessageTts.isMobileDevice(navigator, hasCoarsePointer);
+}
+
+function setSpeechPlaybackStatus(controlButton, message) {
+  const status = controlButton === slowRulesSpeakBtn
+    ? slowRulesSpeechStatus
+    : speechPlaybackStatus;
+  status.textContent = message;
+}
+
 function speakText(text, onEnd, controlButton = ttsBtn) {
-  if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance !== 'function') {
+  if (!hasSpeechSynthesisSupport()) {
     controlButton.textContent = controlButton === slowRulesSpeakBtn
       ? '🔊 BẤM ĐỂ NGHE 3 NGUYÊN TẮC'
-      : '🔊 NGHE KẾT QUẢ';
-    if (onEnd) onEnd();
+      : '🔊 BẤM ĐỂ NGHE KẾT QUẢ';
+    setSpeechPlaybackStatus(controlButton, 'Trình duyệt này chưa hỗ trợ đọc giọng nói trên thiết bị.');
     return false;
   }
 
@@ -1047,43 +1055,74 @@ function speakText(text, onEnd, controlButton = ttsBtn) {
   utterance.volume = 1;
   isSpeechPaused = false;
   isSpeechActive = true;
+  setSpeechPlaybackStatus(controlButton, '');
   controlButton.textContent = '⏸️ Tạm dừng đọc';
 
-  const startUtterance = () => {
+  let voices = [];
+  try {
+    voices = window.speechSynthesis.getVoices();
+  } catch (error) {
+    console.warn('Không thể tải danh sách giọng đọc:', error);
+  }
+  utterance.voice = chooseVietnameseVoice(voices) || preferredVietnameseVoice || null;
+
+  const finish = (error = null, callOnEnd = true) => {
     if (currentUtterance !== utterance) return;
-    const voices = window.speechSynthesis.getVoices();
-    utterance.voice = chooseVietnameseVoice(voices) || preferredVietnameseVoice;
-    window.speechSynthesis.speak(utterance);
+    if (speechStartTimer) {
+      window.clearTimeout(speechStartTimer);
+      speechStartTimer = null;
+    }
+    currentUtterance = null;
+    resetSpeechState(controlButton);
+    activeSpeechButton = null;
+    const wasInterrupted = error === 'canceled' || error === 'interrupted';
+    setSpeechPlaybackStatus(controlButton, error && !wasInterrupted
+      ? 'Không phát được âm thanh. Hãy kiểm tra âm lượng, chế độ im lặng và thử lại.'
+      : '');
+    if (!error && callOnEnd && onEnd) onEnd();
   };
 
+  utterance.onend = () => finish();
+  utterance.onerror = (event) => finish(event && event.error ? event.error : 'unknown');
+  let hasStarted = false;
   utterance.onstart = () => {
     if (currentUtterance !== utterance) return;
+    hasStarted = true;
+    if (speechStartTimer) {
+      window.clearTimeout(speechStartTimer);
+      speechStartTimer = null;
+    }
     isSpeechActive = true;
     controlButton.classList.add('speaking');
   };
 
-  const finish = () => {
-    if (currentUtterance !== utterance) return;
-    currentUtterance = null;
-    resetSpeechState(controlButton);
-    activeSpeechButton = null;
-    if (onEnd) onEnd();
-  };
+  try {
+    window.speechSynthesis.speak(utterance);
+  } catch (error) {
+    console.error('Không thể phát giọng nói trên thiết bị:', error);
+    finish('speech-start-failed', false);
+    return false;
+  }
 
-  utterance.onend = finish;
-  utterance.onerror = finish;
+  if (!hasStarted) {
+    speechStartTimer = window.setTimeout(() => {
+      speechStartTimer = null;
+      if (currentUtterance !== utterance || hasStarted) return;
+      finish('speech-start-timeout', false);
+      try {
+        window.speechSynthesis.cancel();
+      } catch (error) {
+        console.warn('Không thể dừng giọng đọc chưa bắt đầu:', error);
+      }
+    }, 8000);
+  }
 
-  const voices = window.speechSynthesis.getVoices();
-  const bestAvailableVoice = chooseVietnameseVoice(voices);
-  if (isExplicitlyPreferredVietnameseVoice(bestAvailableVoice)) {
-    startUtterance();
-  } else {
-    pendingSpeechStart = startUtterance;
-    speechVoiceLoadTimer = window.setTimeout(() => {
-      speechVoiceLoadTimer = null;
-      pendingSpeechStart = null;
-      startUtterance();
-    }, 1200);
+  if (isMobileSpeechEnvironment()) {
+    try {
+      window.speechSynthesis.resume();
+    } catch (error) {
+      console.warn('Không thể tiếp tục phát giọng nói trên thiết bị:', error);
+    }
   }
   return true;
 }
@@ -1094,11 +1133,12 @@ function resetSpeechState(controlButton = activeSpeechButton || ttsBtn) {
   controlButton.classList.remove('speaking');
   controlButton.textContent = controlButton === slowRulesSpeakBtn
     ? '🔊 BẤM ĐỂ NGHE 3 NGUYÊN TẮC'
-    : '🔊 NGHE KẾT QUẢ';
+    : '🔊 BẤM ĐỂ NGHE KẾT QUẢ';
 }
 
 function stopSpeaking() {
   const controlButton = activeSpeechButton;
+  const hasActiveUtterance = currentUtterance !== null;
   audioPlaybackToken += 1;
   currentAudioFallback = null;
   if (currentAudio) {
@@ -1110,16 +1150,16 @@ function stopSpeaking() {
   }
   audioQueue = [];
   audioQueueIndex = 0;
-  currentUtterance = null;
-  pendingSpeechStart = null;
-  if (speechVoiceLoadTimer) {
-    window.clearTimeout(speechVoiceLoadTimer);
-    speechVoiceLoadTimer = null;
+  if (speechStartTimer) {
+    window.clearTimeout(speechStartTimer);
+    speechStartTimer = null;
   }
-  if ('speechSynthesis' in window) {
+  currentUtterance = null;
+  if (hasActiveUtterance && 'speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }
   resetSpeechState(controlButton || ttsBtn);
+  setSpeechPlaybackStatus(controlButton || ttsBtn, '');
   activeSpeechButton = null;
 }
 

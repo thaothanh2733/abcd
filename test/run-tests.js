@@ -292,10 +292,22 @@ console.log('================================================================\n'
     app.includes('hoai\\s*-?\\s*my|microsoft.*hoai\\s*-?\\s*my.*natural') &&
     app.includes('vietnamese\\s*\\(female\\)') &&
     app.includes('/^vi[-_]vn$/i') &&
-    app.includes('function isExplicitlyPreferredVietnameseVoice(voice)') &&
     app.includes('window.speechSynthesis.onvoiceschanged = refreshVietnameseVoices') &&
-    app.includes('pendingSpeechStart = startUtterance') &&
-    app.includes('}, 1200)') &&
+    app.includes('function isMobileSpeechEnvironment()') &&
+    app.includes('MessageTts.isMobileDevice(navigator, hasCoarsePointer)') &&
+    app.includes('if (isMobileSpeechEnvironment() && hasSpeechSynthesisSupport())') &&
+    app.includes('window.speechSynthesis.speak(utterance)') &&
+    app.includes("window.setTimeout(() => {") &&
+    app.includes("}, 8000)") &&
+    !app.includes('pendingSpeechStart') &&
+    !app.includes('speechVoiceLoadTimer') &&
+    app.includes('utterance.onerror = (event) => finish') &&
+    app.includes('Không phát được âm thanh. Hãy kiểm tra âm lượng, chế độ im lặng và thử lại.') &&
+    app.includes('window.setTimeout(() => speakResult(), 150)') &&
+    app.includes('window.setTimeout(() => speakSmsDemoAlert(true), 150)') &&
+    html.includes('id="speechPlaybackStatus"') &&
+    html.includes('id="slowRulesSpeechStatus"') &&
+    css.includes('.speech-playback-status') &&
     html.includes('ttsUtils.js') &&
     html.includes('Bảo đảm riêng tư: Hệ thống không lưu trữ tin nhắn của bạn.') &&
     html.indexOf('id="analyzeBtn"') < html.indexOf('class="privacy-note checker-privacy-note"') &&

@@ -37,5 +37,16 @@
     return chunks;
   }
 
-  return { splitText };
+  function isMobileDevice(navigatorLike, hasCoarsePointer = false) {
+    const userAgent = navigatorLike.userAgent || '';
+    const isIPadDesktopMode = navigatorLike.maxTouchPoints > 1 && /Macintosh/i.test(userAgent);
+    return Boolean(
+      hasCoarsePointer ||
+      (navigatorLike.userAgentData && navigatorLike.userAgentData.mobile) ||
+      /Android|iPhone|iPad|iPod|Mobile/i.test(userAgent) ||
+      isIPadDesktopMode
+    );
+  }
+
+  return { splitText, isMobileDevice };
 });
