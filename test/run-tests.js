@@ -254,6 +254,8 @@ console.log('================================================================\n'
     html.includes('id="clearHistoryBtn"') &&
     historyStore.includes('MAX_ITEMS = 15') &&
     app.includes('window.localStorage');
+  const mobileSpeechPromptPosition = app.indexOf("speakText('Đang kiểm tra.', null, ttsBtn)");
+  const analyzeFetchPosition = app.indexOf("const response = await fetch('/api/analyze'");
   const hasVoiceAndSmsAccessibility = html.includes('id="speechInputBtn"') &&
     html.includes('id="speechInputStatus"') &&
     html.includes('id="smsDemoBtn"') &&
@@ -295,7 +297,9 @@ console.log('================================================================\n'
     app.includes('window.speechSynthesis.onvoiceschanged = refreshVietnameseVoices') &&
     app.includes('function isMobileSpeechEnvironment()') &&
     app.includes('MessageTts.isMobileDevice(navigator, hasCoarsePointer)') &&
-    app.includes('if (isMobileSpeechEnvironment() && hasSpeechSynthesisSupport())') &&
+    app.includes('if (options.autoRead !== false && isMobileSpeechEnvironment() && hasSpeechSynthesisSupport())') &&
+    mobileSpeechPromptPosition >= 0 &&
+    mobileSpeechPromptPosition < analyzeFetchPosition &&
     app.includes('window.speechSynthesis.speak(utterance)') &&
     app.includes("window.setTimeout(() => {") &&
     app.includes("}, 8000)") &&
@@ -303,8 +307,8 @@ console.log('================================================================\n'
     !app.includes('speechVoiceLoadTimer') &&
     app.includes('utterance.onerror = (event) => finish') &&
     app.includes('Không phát được âm thanh. Hãy kiểm tra âm lượng, chế độ im lặng và thử lại.') &&
-    app.includes('window.setTimeout(() => speakResult(), 150)') &&
-    app.includes('window.setTimeout(() => speakSmsDemoAlert(true), 150)') &&
+    app.includes('speakResult();') &&
+    app.includes('speakSmsDemoAlert(true);') &&
     html.includes('id="speechPlaybackStatus"') &&
     html.includes('id="slowRulesSpeechStatus"') &&
     css.includes('.speech-playback-status') &&
@@ -353,13 +357,11 @@ console.log('================================================================\n'
     app.includes('ocrRecognitionQueue') &&
     css.includes('.share-result-button') &&
     css.includes('.ocr-error-message.is-info');
-  const hasSeniorQuickSafetyFeatures = html.includes('data-quick-test="bank"') &&
-    html.includes('data-quick-test="police"') &&
-    html.includes('data-quick-test="prize"') &&
-    app.includes('const QUICK_TEST_MESSAGES = {') &&
-    app.includes('textInput.value = sample;') &&
-    app.includes('handleAnalyze();') &&
-    app.includes('quickTestButtons.forEach((button) => {') &&
+  const hasSeniorSafetyFeatures = !html.includes('quick-test-group') &&
+    !html.includes('data-quick-test=') &&
+    !app.includes('QUICK_TEST_MESSAGES') &&
+    !css.includes('.quick-test-button') &&
+    app.includes("speakText('Đang kiểm tra.', null, ttsBtn)") &&
     app.includes("emergencyCallLink.hidden = data.alert_level !== 'NGUY HIỂM CAO'") &&
     html.includes('href="tel:156"') &&
     html.includes('id="slowRulesCard"') &&
@@ -368,20 +370,18 @@ console.log('================================================================\n'
     app.includes('const SLOW_RULES_SPEECH_TEXT =') &&
     app.includes('speakStaticText(SLOW_RULES_SPEECH_TEXT, null, button)') &&
     app.includes('function syncSlowRulesVisibility()') &&
-    css.includes('.quick-test-button') &&
-    css.includes('body.dark-mode .quick-test-button') &&
     css.includes('body.dark-mode .emergency-call-link') &&
     css.includes('body.dark-mode .slow-rules-card') &&
     css.includes('.slow-rules-card[hidden]');
   const pass = hasMobileMedia && hasFontScaling && hasSeniorFriendlyResults &&
     hasThemeToggle && hasDarkPalette && hasDarkModeFocus && hasReadableDarkHelpers &&
     hasHistorySidebar && hasVoiceAndSmsAccessibility && hasPerformanceAndSharing &&
-    hasSeniorQuickSafetyFeatures;
+    hasSeniorSafetyFeatures;
   recordTest(
     11,
     'Sử dụng trên giao diện điện thoại & trợ năng người cao tuổi',
-    'Giao diện mobile, tăng/giảm chữ 4px, kết quả đúng thứ tự, mẫu nhanh và nguyên tắc an toàn',
-    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}, Bảng màu tối: ${hasDarkPalette}, Focus rõ: ${hasDarkModeFocus}, Chữ phụ dễ đọc: ${hasReadableDarkHelpers}, Sidebar lịch sử: ${hasHistorySidebar}, Giọng nói và SMS demo: ${hasVoiceAndSmsAccessibility}, Chia sẻ và hiệu năng: ${hasPerformanceAndSharing}, Mẫu nhanh/156/3 chậm: ${hasSeniorQuickSafetyFeatures}`,
+    'Giao diện mobile, tăng/giảm chữ 4px, kết quả đúng thứ tự và tự đọc an toàn',
+    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}, Bảng màu tối: ${hasDarkPalette}, Focus rõ: ${hasDarkModeFocus}, Chữ phụ dễ đọc: ${hasReadableDarkHelpers}, Sidebar lịch sử: ${hasHistorySidebar}, Giọng nói và SMS demo: ${hasVoiceAndSmsAccessibility}, Chia sẻ và hiệu năng: ${hasPerformanceAndSharing}, Tự đọc/156/3 chậm, không mẫu nhanh: ${hasSeniorSafetyFeatures}`,
     pass,
     pass ? 'Đạt tiêu chuẩn UI/UX người cao tuổi' : 'Thiếu responsive hoặc trợ năng'
   );

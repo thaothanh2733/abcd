@@ -32,11 +32,6 @@ let smsVoiceError = null;
 let smsVoiceRetryCount = 0;
 let smsVoiceFlowActive = false;
 let isServerOnline = false;
-const QUICK_TEST_MESSAGES = {
-  bank: 'Thông báo từ ngân hàng: Tài khoản của bạn sẽ bị khóa trong 24 giờ. Hãy gửi mã OTP để xác minh ngay.',
-  police: 'Công an thông báo bạn liên quan vụ án. Chuyển tiền vào tài khoản xác minh ngay, nếu không sẽ có lệnh bắt.',
-  prize: 'Chúc mừng bạn đã trúng thưởng xe SH. Vui lòng nộp phí nhận quà ngay hôm nay.'
-};
 const SLOW_RULES_SPEECH_TEXT = 'Nguyên tắc 3 chậm khi nhận tin lạ: Một, chậm lại: không vội làm theo, không hoảng sợ. Hai, chậm bấm: không bấm vào liên kết lạ, không gửi mã OTP. Ba, chậm chuyển: luôn gọi điện thoại cho con cháu trước khi chuyển tiền.';
 
 // DOM Elements
@@ -74,7 +69,6 @@ const shareResultStatus = document.getElementById('shareResultStatus');
 const emergencyCallLink = document.getElementById('emergencyCallLink');
 const slowRulesCard = document.getElementById('slowRulesCard');
 const slowRulesSpeakBtn = document.getElementById('slowRulesSpeakBtn');
-const quickTestButtons = document.querySelectorAll('.quick-test-button');
 const resetBtn = document.getElementById('resetBtn');
 
 // Accessibility controls
@@ -544,26 +538,9 @@ function refreshAnalyzeButton() {
   const isLocked = analysisInProgress || ocrIsRunning || isCoolingDown;
   analyzeBtn.disabled = isLocked;
   smsDemoBtn.disabled = isLocked;
-  quickTestButtons.forEach((button) => {
-    button.disabled = isLocked;
-  });
   analyzeBtn.setAttribute('aria-busy', String(analysisInProgress || ocrIsRunning));
   analyzeBtn.textContent = isLocked ? 'Đang kiểm tra...' : 'Kiểm tra tin nhắn';
 }
-
-quickTestButtons.forEach((button) => {
-  button.addEventListener('click', () => {
-    const sample = QUICK_TEST_MESSAGES[button.dataset.quickTest];
-    if (!sample || analysisInProgress || ocrIsRunning || Date.now() < analysisCooldownUntil) return;
-
-    if (currentFile) removeImgBtn.click();
-    if (!tabBtns[0].classList.contains('active')) tabBtns[0].click();
-    textInput.value = sample;
-    updateCharCount();
-    textInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    handleAnalyze();
-  });
-});
 
 function beginAnalysisAttempt() {
   if (analysisInProgress || ocrIsRunning || Date.now() < analysisCooldownUntil) return false;
@@ -623,6 +600,9 @@ async function handleAnalyze(options = {}) {
 
   // Dừng giọng nói cũ nếu đang phát
   stopSpeaking();
+  if (options.autoRead !== false && isMobileSpeechEnvironment() && hasSpeechSynthesisSupport()) {
+    speakText('Đang kiểm tra.', null, ttsBtn);
+  }
 
   let analysisResult;
 
@@ -753,9 +733,9 @@ function renderResult(data, options = {}) {
   }
 
   if (options.voiceDemo) {
-    window.setTimeout(() => speakSmsDemoAlert(true), 150);
+    speakSmsDemoAlert(true);
   } else if (options.autoRead) {
-    window.setTimeout(() => speakResult(), 150);
+    speakResult();
   }
 
   // Cuộn mượt đến bảng kết quả

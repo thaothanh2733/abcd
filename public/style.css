@@ -566,42 +566,6 @@ body.dark-mode .clear-history-button {
   font-size: 0.84rem;
 }
 
-.quick-test-group {
-  margin: 0.65rem 0 1rem;
-}
-
-.quick-test-title {
-  margin: 0 0 0.55rem;
-  font-weight: 800;
-}
-
-.quick-test-buttons {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 0.7rem;
-}
-
-.quick-test-button {
-  min-height: 62px;
-  padding: 0.75rem 1rem;
-  border: 2px solid #c5d8e4;
-  border-radius: 16px;
-  background: #edf6fa;
-  color: #123d58;
-  font-size: 1rem;
-  font-weight: 800;
-}
-
-.quick-test-button:hover:not(:disabled) {
-  border-color: #145a86;
-  background: #deeff7;
-}
-
-.quick-test-button:disabled {
-  cursor: wait;
-  opacity: 0.6;
-}
-
 .file-input {
   display: none;
 }
@@ -1379,17 +1343,6 @@ body.dark-mode .sms-demo-button {
   color: #facc15;
 }
 
-body.dark-mode .quick-test-button {
-  border-color: #64748b;
-  background: #242424;
-  color: #e0e0e0;
-}
-
-body.dark-mode .quick-test-button:hover:not(:disabled) {
-  border-color: #38bdf8;
-  background: #172a35;
-}
-
 body.dark-mode .emergency-call-link {
   border-color: #fca5a5;
   background: #351919;
@@ -1701,10 +1654,6 @@ body.dark-mode textarea:focus-visible {
     display: grid;
     width: 100%;
     grid-template-columns: 1fr 1fr;
-  }
-
-  .quick-test-buttons {
-    grid-template-columns: 1fr;
   }
 
   .tab-btn {
