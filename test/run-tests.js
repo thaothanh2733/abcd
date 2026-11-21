@@ -373,15 +373,33 @@ console.log('================================================================\n'
     css.includes('body.dark-mode .emergency-call-link') &&
     css.includes('body.dark-mode .slow-rules-card') &&
     css.includes('.slow-rules-card[hidden]');
+  const guideSvgCount = (html.match(/<svg viewBox="0 0 100 100" class="guide-svg"/g) || []).length;
+  const imagePaneStart = html.indexOf('<div class="tab-pane" id="tab-image"');
+  const guidePaneStart = html.indexOf('<div class="tab-pane" id="tab-guide"');
+  const imagePaneMarkup = imagePaneStart >= 0 && guidePaneStart > imagePaneStart
+    ? html.slice(imagePaneStart, guidePaneStart)
+    : '';
+  const imagePaneIsClosed = (imagePaneMarkup.match(/<div\b/g) || []).length ===
+    (imagePaneMarkup.match(/<\/div>/g) || []).length;
+  const hasGuideTab = html.includes('data-tab="tab-guide"') &&
+    html.includes('id="tab-guide"') &&
+    guideSvgCount === 3 &&
+    imagePaneIsClosed &&
+    html.includes('id="startCheckFromGuideBtn"') &&
+    app.includes("const startCheckFromGuideBtn = document.getElementById('startCheckFromGuideBtn');") &&
+    app.includes("document.querySelector('[data-tab=\"tab-text\"]')") &&
+    css.includes('.guide-steps-grid') &&
+    css.includes('.guide-badge') &&
+    css.includes('.guide-svg');
   const pass = hasMobileMedia && hasFontScaling && hasSeniorFriendlyResults &&
     hasThemeToggle && hasDarkPalette && hasDarkModeFocus && hasReadableDarkHelpers &&
     hasHistorySidebar && hasVoiceAndSmsAccessibility && hasPerformanceAndSharing &&
-    hasSeniorSafetyFeatures;
+    hasSeniorSafetyFeatures && hasGuideTab;
   recordTest(
     11,
     'Sử dụng trên giao diện điện thoại & trợ năng người cao tuổi',
-    'Giao diện mobile, tăng/giảm chữ 4px, kết quả đúng thứ tự và tự đọc an toàn',
-    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}, Bảng màu tối: ${hasDarkPalette}, Focus rõ: ${hasDarkModeFocus}, Chữ phụ dễ đọc: ${hasReadableDarkHelpers}, Sidebar lịch sử: ${hasHistorySidebar}, Giọng nói và SMS demo: ${hasVoiceAndSmsAccessibility}, Chia sẻ và hiệu năng: ${hasPerformanceAndSharing}, Tự đọc/156/3 chậm, không mẫu nhanh: ${hasSeniorSafetyFeatures}`,
+    'Giao diện mobile, tăng/giảm chữ 4px, tự đọc an toàn và tab hướng dẫn có 3 hình SVG',
+    `Mobile: ${hasMobileMedia}, Cỡ chữ: ${hasFontScaling}, Bố cục kết quả: ${hasSeniorFriendlyResults}, Sáng/tối: ${hasThemeToggle}, Bảng màu tối: ${hasDarkPalette}, Focus rõ: ${hasDarkModeFocus}, Chữ phụ dễ đọc: ${hasReadableDarkHelpers}, Sidebar lịch sử: ${hasHistorySidebar}, Giọng nói và SMS demo: ${hasVoiceAndSmsAccessibility}, Chia sẻ và hiệu năng: ${hasPerformanceAndSharing}, Tự đọc/156/3 chậm: ${hasSeniorSafetyFeatures}, Hướng dẫn: ${hasGuideTab}`,
     pass,
     pass ? 'Đạt tiêu chuẩn UI/UX người cao tuổi' : 'Thiếu responsive hoặc trợ năng'
   );

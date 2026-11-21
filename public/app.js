@@ -422,6 +422,14 @@ tabBtns.forEach((btn) => {
   });
 });
 
+const startCheckFromGuideBtn = document.getElementById('startCheckFromGuideBtn');
+if (startCheckFromGuideBtn) {
+  startCheckFromGuideBtn.addEventListener('click', () => {
+    const textTabBtn = document.querySelector('[data-tab="tab-text"]');
+    if (textTabBtn) textTabBtn.click();
+  });
+}
+
 // Đếm ký tự
 textInput.addEventListener('input', updateCharCount);
 ocrResultText.addEventListener('input', () => {
