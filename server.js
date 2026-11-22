@@ -7,8 +7,10 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const crypto = require('crypto');
 const { analyzeWithRuleEngine, applyGuardrails, maskSensitiveData } = require('./guardrails');
 const { analyzeWithGemini } = require('./geminiService');
+const { saveAnalysisHistory } = require('./supabaseService');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -182,6 +184,12 @@ app.post('/api/analyze', async (req, res) => {
     result.sanitized_input_preview = sanitizedText;
     result.fallback_info = fallbackInfo;
     result.timestamp = new Date().toISOString();
+
+    try {
+      await saveAnalysisHistory(crypto.randomUUID(), result);
+    } catch (databaseError) {
+      console.warn('Không thể lưu kết quả phân tích vào Supabase:', databaseError.message);
+    }
 
     return res.json(result);
   } catch (error) {
