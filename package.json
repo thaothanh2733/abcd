@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node test/run-tests.js && node test/history.test.js && node test/ocr-validation.test.js && node test/gemini-fallback.test.js && node test/tts.test.js",
+    "test": "node test/run-tests.js && node test/history.test.js && node test/ocr-validation.test.js && node test/gemini-fallback.test.js && node test/tts.test.js && node test/link-scanner.test.js",
     "deploy": "git add . && git commit -m \"Update Vietnamese voice playback\" -m \"Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\" && git push origin main"
   },
   "keywords": [
@@ -23,7 +23,6 @@
     "@supabase/supabase-js": "^2.119.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "pg": "^8.23.1"
+    "express": "^4.21.2"
   }
 }

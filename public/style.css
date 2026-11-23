@@ -1771,6 +1771,12 @@ body.dark-mode textarea:focus-visible {
     color: #ffffff;
     box-shadow: none;
   }
+
+  .emergency-family-btn {
+    background: #dc2626;
+    color: #ffffff;
+    box-shadow: none;
+  }
 }
 
 @media (prefers-reduced-transparency: reduce) {
@@ -1813,4 +1819,305 @@ body.dark-mode textarea:focus-visible {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ==========================================================================
+   TÍNH NĂNG MỚI: BÁO ĐỘNG NGƯỜI THÂN, BẢNG TIN LỪA ĐẢO & ĐỐI SOÁT LINK
+   ========================================================================== */
+.emergency-family-btn {
+  display: block;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.95rem 1.25rem;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #ffffff;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border: 2px solid #ef4444;
+  border-radius: var(--round);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.emergency-family-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.45);
+}
+
+.link-threat-container {
+  margin-top: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: #fef2f2;
+  border: 2px solid #f87171;
+  border-radius: var(--round);
+}
+
+.link-threat-title {
+  margin: 0 0 0.5rem 0;
+  color: #991b1b;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.link-threat-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #7f1d1d;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.scam-trends-card {
+  margin-top: 2rem;
+  padding: 1.75rem 1.5rem;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--round-lg);
+  box-shadow: var(--shadow);
+}
+
+.scam-trends-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.scam-trends-header h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--ink);
+}
+
+.scam-trends-badge {
+  display: inline-block;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #ffffff;
+  background: #0284c7;
+  border-radius: 999px;
+}
+
+.scam-trends-subtitle {
+  margin: 0.5rem 0 1.25rem 0;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.scam-trends-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.trend-item {
+  padding: 1.25rem;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: var(--round);
+  display: flex;
+  flex-direction: column;
+}
+
+.trend-tag {
+  align-self: flex-start;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.tag-urgent {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.tag-warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.tag-common {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.trend-item-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+
+.trend-item-summary {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+.trend-item-tip {
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--line);
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.family-phone-dialog {
+  border: none;
+  border-radius: var(--round-lg);
+  padding: 0;
+  max-width: 440px;
+  width: 90%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25);
+}
+
+.family-phone-dialog::backdrop {
+  background: rgba(15, 23, 42, 0.65);
+}
+
+.family-phone-content {
+  padding: 1.75rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.family-phone-content h2 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.25rem;
+}
+
+.family-phone-desc {
+  margin: 0 0 1rem 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.family-phone-input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border: 2px solid var(--line);
+  border-radius: var(--round);
+  margin-bottom: 0.75rem;
+  box-sizing: border-box;
+}
+
+.family-phone-input:focus-visible {
+  outline: 2px solid #facc15;
+  border-color: #facc15;
+}
+
+.family-phone-status {
+  min-height: 1.25rem;
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #15803d;
+}
+
+.family-phone-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.family-phone-actions button {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  font-weight: 800;
+  border-radius: var(--round);
+  cursor: pointer;
+}
+
+.family-phone-actions .primary-btn {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+}
+
+.family-phone-actions .secondary-btn {
+  background: #e2e8f0;
+  color: #334155;
+  border: none;
+}
+
+.settings-phone-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-top: 0.5rem;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--round);
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+}
+
+.settings-phone-button:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Dark mode overrides */
+body.dark-mode .emergency-family-btn {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  border-color: #ef4444;
+}
+
+body.dark-mode .link-threat-container {
+  background: #450a0a;
+  border-color: #ef4444;
+}
+
+body.dark-mode .link-threat-title {
+  color: #fecaca;
+}
+
+body.dark-mode .link-threat-list {
+  color: #fee2e2;
+}
+
+body.dark-mode .scam-trends-card {
+  background: #1e1e1e;
+  border-color: #333333;
+}
+
+body.dark-mode .trend-item {
+  background: #262626;
+  border-color: #404040;
+}
+
+body.dark-mode .family-phone-content {
+  background: #1e1e1e;
+  color: #e0e0e0;
+}
+
+body.dark-mode .family-phone-desc {
+  color: #b0b0b0;
+}
+
+body.dark-mode .family-phone-input {
+  background: #2a2a2a;
+  color: #e0e0e0;
+  border-color: #444444;
+}
+
+body.dark-mode .settings-phone-button {
+  border-color: #404040;
+  color: #e0e0e0;
+}
+
+body.dark-mode .settings-phone-button:hover {
+  background: #2a2a2a;
 }

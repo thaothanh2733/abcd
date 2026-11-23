@@ -8,9 +8,11 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const crypto = require('crypto');
-const { analyzeWithRuleEngine, applyGuardrails, maskSensitiveData } = require('./guardrails');
-const { analyzeWithGemini } = require('./geminiService');
-const { saveAnalysisHistory } = require('./supabaseService');
+const { analyzeWithRuleEngine, applyGuardrails, maskSensitiveData } = require('./services/guardrails');
+const { analyzeWithGemini } = require('./services/geminiService');
+const { saveAnalysisHistory } = require('./services/supabaseService');
+const { getScamTrends } = require('./services/scamTrendsService');
+const { scanLinks } = require('./services/linkScanner');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -82,12 +84,16 @@ app.get('/api/status', (req, res) => {
   res.json({
     project: 'LÁ CHẮN NGƯỜI THÂN',
     slogan: 'Nhận được tin lạ, không ai phải đoán một mình.',
-    version: '1.0.0',
+    version: '1.1.0',
     ai_status: {
       is_configured: isAiActive,
       active_mode: isAiActive ? 'gemini_ai' : 'rule_engine',
       provider: isAiActive ? 'Google Gemini (Flash)' : 'Bộ quy tắc an toàn nội bộ (Rule Engine)',
       key_source: isSessionConfigured ? 'Giao diện tạm thời' : isEnvConfigured ? 'Tệp môi trường (.env)' : 'Chưa cấu hình (Đang chạy chế độ an toàn nội bộ)'
+    },
+    threat_intelligence: {
+      link_scanner_enabled: true,
+      scam_trends_count: getScamTrends().total_trends
     },
     privacy: {
       data_stored: false,
@@ -105,7 +111,22 @@ app.get('/api/samples', (req, res) => {
 });
 
 /**
- * POST /api/set-key - Thiết lập API key trong phiên làm việc (cho mục đích demo/thử nghiệm)
+ * GET /api/trends - Bảng tin thủ đoạn lừa đảo mới nhất
+ */
+app.get('/api/trends', (req, res) => {
+  res.json(getScamTrends());
+});
+
+/**
+ * POST /api/check-link - Đối soát liên kết với Threat Intelligence
+ */
+app.post('/api/check-link', (req, res) => {
+  const target = req.body?.text || req.body?.url || '';
+  res.json(scanLinks(target));
+});
+
+/**
+ * POST /api/set-key - Thiết lập API key trong phiên làm việc
  */
 app.post('/api/set-key', (req, res) => {
   const { apiKey } = req.body;
@@ -123,7 +144,7 @@ app.post('/api/set-key', (req, res) => {
  */
 app.post('/api/analyze', async (req, res) => {
   try {
-    const { text, clientMode } = req.body;
+    const { text, clientMode, apiKey: requestApiKey } = req.body;
 
     // Kiểm tra tính hợp lệ của văn bản
     if (!text || typeof text !== 'string' || text.trim() === '') {
@@ -145,7 +166,10 @@ app.post('/api/analyze', async (req, res) => {
     // Bảo vệ quyền riêng tư: Che thông tin nhạy cảm trước khi xử lý
     const sanitizedText = maskSensitiveData(trimmedText);
 
-    const activeApiKey = sessionApiKey || process.env.GEMINI_API_KEY;
+    // Ưu tiên key từ Header/Body của request (độc lập theo phiên người dùng), sau đó mới tới sessionApiKey và .env
+    const headerKey = req.headers['x-gemini-key'];
+    const customKey = (typeof headerKey === 'string' && headerKey.trim() !== '') ? headerKey.trim() : (typeof requestApiKey === 'string' && requestApiKey.trim() !== '' ? requestApiKey.trim() : null);
+    const activeApiKey = customKey || sessionApiKey || process.env.GEMINI_API_KEY;
     const canUseGemini = activeApiKey && activeApiKey.trim() !== '' && activeApiKey !== 'YOUR_GEMINI_API_KEY';
     const forceRule = clientMode === 'rule';
 
@@ -180,6 +204,10 @@ app.post('/api/analyze', async (req, res) => {
       }
     }
 
+    // Đối soát liên kết qua bộ quét Threat Intelligence
+    const linkReport = scanLinks(trimmedText);
+    result.link_threat_report = linkReport;
+
     // Luôn che dữ liệu nhạy cảm trong phản hồi hiển thị
     result.sanitized_input_preview = sanitizedText;
     result.fallback_info = fallbackInfo;
@@ -211,7 +239,7 @@ if (process.env.NODE_ENV !== 'test') {
   const startServer = (portToTry) => {
     const serverInstance = app.listen(portToTry, () => {
       console.log(`====================================================`);
-      console.log(`🛡️  DỰ ÁN: LÁ CHẮN NGƯỜI THÂN - PHIÊN BẢN 1.0.0`);
+      console.log(`🛡️  DỰ ÁN: LÁ CHẮN NGƯỜI THÂN - PHIÊN BẢN 1.1.0`);
       console.log(`🎯  "Nhận được tin lạ, không ai phải đoán một mình."`);
       console.log(`🚀  Máy chủ đang chạy tại: http://localhost:${portToTry}`);
       console.log(`🤖  Trạng thái AI: ${process.env.GEMINI_API_KEY ? 'ĐÃ CẤU HÌNH API KEY' : 'CHẾ ĐỘ QUY TẮC NỘI BỘ (RULE ENGINE)'}`);

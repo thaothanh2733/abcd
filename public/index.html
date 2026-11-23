@@ -25,6 +25,10 @@
     <p class="history-storage-note">Lịch sử chỉ lưu trên thiết bị này.</p>
     <p class="history-status" id="historyStatus" role="status" aria-live="polite"></p>
     <div class="history-list" id="historyList" role="list" aria-label="Các tin đã kiểm tra gần đây"></div>
+    <button class="settings-phone-button" type="button" id="openFamilyPhoneBtn">
+      <span class="sidebar-action-icon" aria-hidden="true">📞</span>
+      <span class="sidebar-action-label" id="familyPhoneLabel">Cài số điện thoại con cháu</span>
+    </button>
     <button class="clear-history-button" type="button" id="clearHistoryBtn">
       <span class="sidebar-action-icon" aria-hidden="true">⌫</span>
       <span class="sidebar-action-label">Xóa toàn bộ lịch sử</span>
@@ -189,7 +193,12 @@
           <div class="result-share-section">
             <button type="button" class="glass-button share-result-button" id="shareResultBtn">📲 GỬI KẾT QUẢ CHO NGƯỜI THÂN QUA ZALO</button>
             <p class="share-result-status" id="shareResultStatus" role="status" aria-live="polite"></p>
+            <button type="button" class="glass-button emergency-family-btn" id="emergencyFamilyBtn" hidden>🚨 BÁO ĐỘNG NGAY CHO CON CHÁU</button>
             <a class="emergency-call-link" id="emergencyCallLink" href="tel:156" hidden>📞 Báo tin nhắn/cuộc gọi lừa đảo: Gọi Tổng đài 156 (Miễn phí)</a>
+          </div>
+          <div class="link-threat-container" id="linkThreatContainer" hidden>
+            <h4 class="link-threat-title">⚠️ ĐỐI SOÁT LIÊN KẾT ĐỘC HẠI:</h4>
+            <ul class="link-threat-list" id="linkThreatList"></ul>
           </div>
           <details class="result-disclosure">
             <summary>Dấu hiệu nhận biết</summary>
@@ -215,7 +224,48 @@
       <button type="button" class="glass-button tts-button three-slow-speak-button" id="slowRulesSpeakBtn">🔊 BẤM ĐỂ NGHE 3 NGUYÊN TẮC</button>
       <p class="speech-playback-status" id="slowRulesSpeechStatus" role="status" aria-live="polite"></p>
     </section>
+
+    <section class="scam-trends-card" id="scamTrendsCard" aria-labelledby="scamTrendsTitle">
+      <div class="scam-trends-header">
+        <h2 id="scamTrendsTitle">📰 BẢNG TIN THỦ ĐOẠN LỪA ĐẢO MỚI NỔI</h2>
+        <span class="scam-trends-badge">Cảnh báo tuần này</span>
+      </div>
+      <p class="scam-trends-subtitle">Những thủ đoạn công nghệ cao tinh vi nhắm vào người cao tuổi và gia đình:</p>
+      <div class="scam-trends-grid" id="scamTrendsGrid">
+        <article class="trend-item">
+          <div class="trend-tag tag-urgent">RẤT NGUY HIỂM</div>
+          <h3 class="trend-item-title">1. Video Deepfake giả mặt & giọng con cháu</h3>
+          <p class="trend-item-summary">Ghép mặt gọi video vài giây rồi tắt (bảo mạng yếu), sau đó nhắn tin giục mẹ/bà chuyển tiền gấp đóng viện phí hoặc học phí.</p>
+          <div class="trend-item-tip">💡 <strong>Cách xử lý:</strong> Gọi lại bằng cuộc gọi thoại thông thường hoặc gọi vào số điện thoại lưu sẵn của người thân khác để kiểm chứng.</div>
+        </article>
+        <article class="trend-item">
+          <div class="trend-tag tag-warning">MỚI NỔI</div>
+          <h3 class="trend-item-title">2. Mạo danh Công an kích hoạt VNeID mức 2</h3>
+          <p class="trend-item-summary">Gọi điện báo tài khoản VNeID lỗi, gửi link tải ứng dụng lạ (.apk) nhằm chiếm quyền điều khiển điện thoại và rút sạch tiền tiết kiệm.</p>
+          <div class="trend-item-tip">💡 <strong>Cách xử lý:</strong> Công an KHÔNG hướng dẫn cài app qua điện thoại. Mọi vướng mắc hãy đến trực tiếp Công an phường/xã.</div>
+        </article>
+        <article class="trend-item">
+          <div class="trend-tag tag-common">PHỔ BIẾN</div>
+          <h3 class="trend-item-title">3. Ảnh chụp biên lai chuyển tiền thành công giả</h3>
+          <p class="trend-item-summary">Gửi ảnh chụp màn hình ngân hàng "Đã chuyển tiền thành công" nhưng tài khoản người nhận chưa có tiền, giục giao hàng hoặc nộp lại tiền thừa.</p>
+          <div class="trend-item-tip">💡 <strong>Cách xử lý:</strong> Chỉ tin khi tiền THỰC SỰ đã cộng vào số dư trên ứng dụng ngân hàng chính thức của mình.</div>
+        </article>
+      </div>
+    </section>
   </main>
+
+  <dialog class="family-phone-dialog" id="familyPhoneDialog" aria-labelledby="familyPhoneTitle">
+    <div class="family-phone-content">
+      <h2 id="familyPhoneTitle">Số điện thoại con cháu / người thân</h2>
+      <p class="family-phone-desc">Lưu số điện thoại người thân để bấm 1 chạm gửi báo động khẩn cấp khi nhận được tin nhắn lừa đảo.</p>
+      <input type="tel" id="familyPhoneInput" class="family-phone-input" placeholder="Ví dụ: 0912345678" pattern="[0-9]{10,11}">
+      <p class="family-phone-status" id="familyPhoneStatus"></p>
+      <div class="family-phone-actions">
+        <button type="button" class="glass-button primary-btn" id="saveFamilyPhoneBtn">Lưu số điện thoại</button>
+        <button type="button" class="glass-button secondary-btn" id="closeFamilyPhoneBtn">Đóng</button>
+      </div>
+    </div>
+  </dialog>
 
   <dialog class="sms-demo-dialog" id="smsDemoDialog" aria-labelledby="smsDemoTitle" aria-describedby="smsDemoDescription smsDemoQuestion">
     <div class="sms-demo-content">

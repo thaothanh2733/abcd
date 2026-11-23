@@ -67,6 +67,16 @@ const slowRulesSpeechStatus = document.getElementById('slowRulesSpeechStatus');
 const shareResultBtn = document.getElementById('shareResultBtn');
 const shareResultStatus = document.getElementById('shareResultStatus');
 const emergencyCallLink = document.getElementById('emergencyCallLink');
+const emergencyFamilyBtn = document.getElementById('emergencyFamilyBtn');
+const linkThreatContainer = document.getElementById('linkThreatContainer');
+const linkThreatList = document.getElementById('linkThreatList');
+const openFamilyPhoneBtn = document.getElementById('openFamilyPhoneBtn');
+const familyPhoneDialog = document.getElementById('familyPhoneDialog');
+const familyPhoneInput = document.getElementById('familyPhoneInput');
+const familyPhoneStatus = document.getElementById('familyPhoneStatus');
+const saveFamilyPhoneBtn = document.getElementById('saveFamilyPhoneBtn');
+const closeFamilyPhoneBtn = document.getElementById('closeFamilyPhoneBtn');
+const familyPhoneLabel = document.getElementById('familyPhoneLabel');
 const slowRulesCard = document.getElementById('slowRulesCard');
 const slowRulesSpeakBtn = document.getElementById('slowRulesSpeakBtn');
 const resetBtn = document.getElementById('resetBtn');
@@ -504,6 +514,10 @@ function handleSelectedImage(file) {
   resultCard.style.display = 'none';
   syncSlowRulesVisibility();
   emergencyCallLink.hidden = true;
+  if (emergencyFamilyBtn) emergencyFamilyBtn.hidden = true;
+  if (linkThreatContainer) linkThreatContainer.hidden = true;
+  if (emergencyFamilyBtn) emergencyFamilyBtn.hidden = true;
+  if (linkThreatContainer) linkThreatContainer.hidden = true;
   resetBtn.style.display = 'none';
   updateCharCount();
   if (currentPreviewUrl) URL.revokeObjectURL(currentPreviewUrl);
@@ -603,6 +617,8 @@ async function handleAnalyze(options = {}) {
   resultCard.style.display = 'none';
   syncSlowRulesVisibility();
   emergencyCallLink.hidden = true;
+  if (emergencyFamilyBtn) emergencyFamilyBtn.hidden = true;
+  if (linkThreatContainer) linkThreatContainer.hidden = true;
   refreshAnalyzeButton();
   loadingBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
@@ -683,6 +699,20 @@ function renderResult(data, options = {}) {
   resultCard.style.display = 'block';
   syncSlowRulesVisibility();
   emergencyCallLink.hidden = data.alert_level !== 'NGUY HIỂM CAO';
+  if (emergencyFamilyBtn) emergencyFamilyBtn.hidden = data.alert_level !== 'NGUY HIỂM CAO';
+
+  // Hiển thị kết quả đối soát liên kết độc hại nếu có
+  if (linkThreatContainer && linkThreatList) {
+    const threats = data.link_threat_report?.detectedLinks?.filter((l) => l.isSuspicious) || [];
+    if (threats.length > 0) {
+      linkThreatList.innerHTML = threats
+        .map((t) => `<li class="link-threat-item"><strong>${escapeHtml(t.url)}</strong>: ${escapeHtml(t.threatReason)}</li>`)
+        .join('');
+      linkThreatContainer.hidden = false;
+    } else {
+      linkThreatContainer.hidden = true;
+    }
+  }
   resetBtn.style.display = 'inline-flex';
   resultCard.querySelectorAll('.result-disclosure').forEach((disclosure) => {
     disclosure.open = false;
@@ -1491,6 +1521,10 @@ function startNewCheck(options = {}) {
   resultCard.style.display = 'none';
   syncSlowRulesVisibility();
   emergencyCallLink.hidden = true;
+  if (emergencyFamilyBtn) emergencyFamilyBtn.hidden = true;
+  if (linkThreatContainer) linkThreatContainer.hidden = true;
+  if (emergencyFamilyBtn) emergencyFamilyBtn.hidden = true;
+  if (linkThreatContainer) linkThreatContainer.hidden = true;
   resetBtn.style.display = 'none';
   currentHistoryId = null;
   updateHistorySelection();
@@ -1682,4 +1716,129 @@ window.addEventListener('DOMContentLoaded', () => {
   resetBtn.style.display = 'none';
   updateFontSize(currentFontSize);
   initializeHistory();
+  initFamilyPhoneFeatures();
+  loadScamTrends();
 });
+
+// ==========================================================================
+// TÍNH NĂNG MỚI: BÁO ĐỘNG CHO CON CHÁU & BẢNG TIN LỪA ĐẢO
+// ==========================================================================
+function getFamilyPhone() {
+  try {
+    return localStorage.getItem('laChanFamilyPhone') || '';
+  } catch (e) {
+    return '';
+  }
+}
+
+function updateFamilyPhoneUI() {
+  const phone = getFamilyPhone();
+  if (familyPhoneLabel) {
+    familyPhoneLabel.textContent = phone ? `SĐT người thân: ${phone}` : 'Cài số điện thoại con cháu';
+  }
+  if (familyPhoneInput) {
+    familyPhoneInput.value = phone;
+  }
+}
+
+function initFamilyPhoneFeatures() {
+  updateFamilyPhoneUI();
+
+  if (openFamilyPhoneBtn && familyPhoneDialog) {
+    openFamilyPhoneBtn.addEventListener('click', () => {
+      updateFamilyPhoneUI();
+      if (familyPhoneStatus) familyPhoneStatus.textContent = '';
+      if (typeof familyPhoneDialog.showModal === 'function') {
+        familyPhoneDialog.showModal();
+      } else {
+        familyPhoneDialog.setAttribute('open', '');
+      }
+    });
+  }
+
+  if (closeFamilyPhoneBtn && familyPhoneDialog) {
+    closeFamilyPhoneBtn.addEventListener('click', () => {
+      if (typeof familyPhoneDialog.close === 'function') {
+        familyPhoneDialog.close();
+      } else {
+        familyPhoneDialog.removeAttribute('open');
+      }
+    });
+  }
+
+  if (saveFamilyPhoneBtn && familyPhoneInput) {
+    saveFamilyPhoneBtn.addEventListener('click', () => {
+      const raw = familyPhoneInput.value.trim().replace(/\s+/g, '');
+      if (!/^[0-9]{9,11}$/.test(raw)) {
+        if (familyPhoneStatus) {
+          familyPhoneStatus.style.color = '#dc2626';
+          familyPhoneStatus.textContent = 'Vui lòng nhập số điện thoại hợp lệ (9-11 chữ số).';
+        }
+        return;
+      }
+      try {
+        localStorage.setItem('laChanFamilyPhone', raw);
+      } catch (err) {
+        console.error('Không thể lưu số điện thoại:', err);
+      }
+      updateFamilyPhoneUI();
+      if (familyPhoneStatus) {
+        familyPhoneStatus.style.color = '#15803d';
+        familyPhoneStatus.textContent = '✅ Đã lưu số điện thoại người thân thành công!';
+      }
+      setTimeout(() => {
+        if (familyPhoneDialog && familyPhoneDialog.open && typeof familyPhoneDialog.close === 'function') {
+          familyPhoneDialog.close();
+        }
+      }, 1000);
+    });
+  }
+
+  if (emergencyFamilyBtn) {
+    emergencyFamilyBtn.addEventListener('click', () => {
+      const phone = getFamilyPhone();
+      if (!phone) {
+        if (familyPhoneDialog) {
+          updateFamilyPhoneUI();
+          if (familyPhoneStatus) {
+            familyPhoneStatus.style.color = '#dc2626';
+            familyPhoneStatus.textContent = 'Vui lòng nhập và lưu số con cháu trước khi gửi báo động.';
+          }
+          if (typeof familyPhoneDialog.showModal === 'function') {
+            familyPhoneDialog.showModal();
+          }
+        }
+        return;
+      }
+
+      const messageText = (currentResultText || textInput.value || '').trim();
+      const preview = messageText.length > 140 ? `${messageText.slice(0, 140)}...` : messageText;
+      const smsBody = `[LÁ CHẮN NGƯỜI THÂN - BÁO ĐỘNG KHẨN]\nBố/Mẹ/Ông/Bà vừa nhận được tin nhắn NGUY HIỂM CAO:\n"${preview}"\nCon/Cháu hãy gọi lại kiểm tra giúp ngay nhé!`;
+      const smsUrl = `sms:${phone}?body=${encodeURIComponent(smsBody)}`;
+      window.location.href = smsUrl;
+    });
+  }
+}
+
+async function loadScamTrends() {
+  try {
+    const res = await fetch('/api/trends');
+    if (!res.ok) return;
+    const data = await res.json();
+    const grid = document.getElementById('scamTrendsGrid');
+    if (!grid || !Array.isArray(data.trends) || data.trends.length === 0) return;
+    grid.innerHTML = data.trends
+      .map(
+        (t, idx) => `
+      <article class="trend-item">
+        <div class="trend-tag ${t.tag.includes('NGUY HIỂM') ? 'tag-urgent' : t.tag.includes('MỚI') ? 'tag-warning' : 'tag-common'}">${escapeHtml(t.tag)}</div>
+        <h3 class="trend-item-title">${idx + 1}. ${escapeHtml(t.title)}</h3>
+        <p class="trend-item-summary">${escapeHtml(t.summary)}</p>
+        <div class="trend-item-tip">💡 <strong>Cách xử lý:</strong> ${escapeHtml(t.advice)}</div>
+      </article>`
+      )
+      .join('');
+  } catch (err) {
+    // Giữ nguyên nội dung tĩnh dự phòng
+  }
+}
