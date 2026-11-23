@@ -11,7 +11,7 @@ const crypto = require('crypto');
 const { analyzeWithRuleEngine, applyGuardrails, maskSensitiveData } = require('./services/guardrails');
 const { analyzeWithGemini } = require('./services/geminiService');
 const { saveAnalysisHistory } = require('./services/supabaseService');
-const { getScamTrends } = require('./services/scamTrendsService');
+const { getScamTrends, getDynamicScamTrends } = require('./services/scamTrendsService');
 const { scanLinks } = require('./services/linkScanner');
 
 const app = express();
@@ -111,10 +111,11 @@ app.get('/api/samples', (req, res) => {
 });
 
 /**
- * GET /api/trends - Bảng tin thủ đoạn lừa đảo mới nhất
+ * GET /api/trends - Bảng tin thủ đoạn lừa đảo mới nhất (tổng hợp động từ cộng đồng)
  */
-app.get('/api/trends', (req, res) => {
-  res.json(getScamTrends());
+app.get('/api/trends', async (req, res) => {
+  const trends = await getDynamicScamTrends(7);
+  res.json(trends);
 });
 
 /**

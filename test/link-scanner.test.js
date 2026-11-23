@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const { scanLinks } = require('../services/linkScanner');
-const { getScamTrends } = require('../services/scamTrendsService');
+const { getScamTrends, getDynamicScamTrends } = require('../services/scamTrendsService');
 
 // 1. Kiểm tra đối soát link lừa đảo
 {
@@ -39,4 +39,10 @@ const { getScamTrends } = require('../services/scamTrendsService');
   assert.ok(trends.trends.some(t => t.id === 'trend-vneid-fake'), 'Include VNeID fake warning');
 }
 
-console.log('ĐẠT: Link Scanner phát hiện chính xác liên kết độc hại và Bảng tin xu hướng hoạt động tốt.');
+// 3. Kiểm tra bảng tin xu hướng động (Data-driven)
+(async () => {
+  const dynamic = await getDynamicScamTrends(7);
+  assert.ok(dynamic.total_trends >= 3, 'Dynamic trends should return at least 3 items');
+  assert.ok(Array.isArray(dynamic.trends), 'Trends should be an array');
+  console.log('ĐẠT: Link Scanner phát hiện chính xác liên kết độc hại và Bảng tin xu hướng hoạt động tốt.');
+})();

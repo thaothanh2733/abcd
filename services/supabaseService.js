@@ -36,4 +36,27 @@ async function saveAnalysisHistory(sessionId, result) {
   return { saved: true };
 }
 
-module.exports = { getSupabaseClient, saveAnalysisHistory };
+async function getRecentAnalysisStats(days = 7) {
+  const client = getSupabaseClient();
+  if (!client) return null;
+
+  try {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await client
+      .from('analysis_history')
+      .select('scenario, alert_level, created_at')
+      .gte('created_at', since)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.warn('Lỗi khi lấy dữ liệu thống kê từ Supabase:', error.message);
+      return null;
+    }
+    return data;
+  } catch (err) {
+    console.warn('Lỗi kết nối Supabase thống kê:', err.message);
+    return null;
+  }
+}
+
+module.exports = { getSupabaseClient, saveAnalysisHistory, getRecentAnalysisStats };

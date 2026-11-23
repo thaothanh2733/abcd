@@ -1827,11 +1827,17 @@ async function loadScamTrends() {
     const data = await res.json();
     const grid = document.getElementById('scamTrendsGrid');
     if (!grid || !Array.isArray(data.trends) || data.trends.length === 0) return;
+
+    const subtitle = document.querySelector('.scam-trends-subtitle');
+    if (subtitle && data.source) {
+      subtitle.textContent = `📊 ${data.source}:`;
+    }
+
     grid.innerHTML = data.trends
       .map(
         (t, idx) => `
       <article class="trend-item">
-        <div class="trend-tag ${t.tag.includes('NGUY HIỂM') ? 'tag-urgent' : t.tag.includes('MỚI') ? 'tag-warning' : 'tag-common'}">${escapeHtml(t.tag)}</div>
+        <div class="trend-tag ${t.tag.includes('NGUY HIỂM') || t.tag.includes('NHIỀU NHẤT') ? 'tag-urgent' : t.tag.includes('MỚI') || t.tag.includes('TOP') ? 'tag-warning' : 'tag-common'}">${escapeHtml(t.tag)}</div>
         <h3 class="trend-item-title">${idx + 1}. ${escapeHtml(t.title)}</h3>
         <p class="trend-item-summary">${escapeHtml(t.summary)}</p>
         <div class="trend-item-tip">💡 <strong>Cách xử lý:</strong> ${escapeHtml(t.advice)}</div>
