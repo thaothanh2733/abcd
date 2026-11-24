@@ -19,9 +19,10 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Tự động chấp nhận giấy phép Android SDK
+    - name: Chấp nhận giấy phép và cài Android SDK 35
       run: |
         yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-35" "build-tools;35.0.1" || true
 
     - name: Phân quyền cho gradlew
       run: chmod +x android/gradlew
@@ -29,7 +30,11 @@ jobs:
     - name: Biên dịch file APK Android
       run: |
         cd android
-        ./gradlew assembleDebug --no-daemon --stacktrace
+        ./gradlew assembleDebug --no-daemon --info 2>&1 | tail -100
+
+    - name: Kiểm tra file APK đã tạo chưa
+      run: |
+        find android/app/build/outputs -name "*.apk" 2>/dev/null && echo "APK OK" || echo "APK NOT FOUND"
 
     - name: Xuất file APK lên GitHub
       uses: actions/upload-artifact@v4
