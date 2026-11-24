@@ -31,6 +31,8 @@ let smsVoiceCommand = null;
 let smsVoiceError = null;
 let smsVoiceRetryCount = 0;
 let smsVoiceFlowActive = false;
+let pendingNotificationContent = null;
+let pendingNotificationSender = null;
 let isServerOnline = false;
 const SLOW_RULES_SPEECH_TEXT = 'Nguyên tắc 3 chậm khi nhận tin lạ: Một, chậm lại: không vội làm theo, không hoảng sợ. Hai, chậm bấm: không bấm vào liên kết lạ, không gửi mã OTP. Ba, chậm chuyển: luôn gọi điện thoại cho con cháu trước khi chuyển tiền.';
 
@@ -1447,13 +1449,19 @@ function acceptSmsDemo() {
   stopSmsVoiceRecognition();
   if (smsDemoDialog.open) smsDemoDialog.close();
 
+  const textToAnalyze = pendingNotificationContent || 'Thông báo từ ngân hàng: Tài khoản của bạn sẽ bị khóa. Vui lòng cung cấp mã OTP để xác minh ngay.';
+  pendingNotificationContent = null;
+  pendingNotificationSender = null;
+
   startNewCheck({ keepSmsVoiceFlow: true });
-  textInput.value = 'Thông báo từ ngân hàng: Tài khoản của bạn sẽ bị khóa. Vui lòng cung cấp mã OTP để xác minh ngay.';
+  textInput.value = textToAnalyze;
   updateCharCount();
   handleAnalyze({ voiceDemo: true });
 }
 
 function dismissSmsDemo() {
+  pendingNotificationContent = null;
+  pendingNotificationSender = null;
   smsVoiceFlowActive = false;
   smsVoiceStage = null;
   stopSmsVoiceRecognition();
@@ -1461,6 +1469,31 @@ function dismissSmsDemo() {
   setSmsVoiceStatus('Đã bỏ qua tin nhắn này.');
   speakStaticText('Đã bỏ qua tin nhắn này.');
 }
+
+window.triggerNotificationInquiry = function ({ sender = 'Người gửi lạ', content = '' }) {
+  if (typeof smsDemoDialog.showModal !== 'function') return;
+
+  cancelSmsVoiceFlow();
+  cancelSpeechInput();
+  stopSpeaking();
+
+  pendingNotificationContent = content;
+  pendingNotificationSender = sender;
+
+  const titleEl = document.getElementById('smsDemoTitle');
+  if (titleEl) titleEl.textContent = `Tin nhắn từ: ${sender}`;
+
+  const questionEl = document.getElementById('smsDemoQuestion');
+  const questionText = `Bạn vừa nhận được tin nhắn từ ${sender}. Bạn có muốn kiểm tra không? Nếu có, hãy nói CÓ. Nếu không, hãy nói KHÔNG.`;
+  if (questionEl) questionEl.textContent = questionText;
+
+  smsVoiceFlowActive = true;
+  smsVoiceStage = 'initial';
+  smsVoiceRetryCount = 0;
+  smsDemoDialog.showModal();
+  speakSmsPrompt(questionText, () => startSmsVoiceRecognition('initial'));
+  smsDemoAcceptBtn.focus();
+};
 
 function cancelSmsVoiceFlow() {
   if (!smsVoiceFlowActive && !smsVoiceRecognition) return;
