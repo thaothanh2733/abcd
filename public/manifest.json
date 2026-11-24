@@ -1,0 +1,17 @@
+{
+  "name": "Lá Chắn Người Thân",
+  "short_name": "Lá Chắn",
+  "description": "AI nhận diện tin nhắn lừa đảo cho người cao tuổi và gia đình",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "app-icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
