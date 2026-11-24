@@ -29,12 +29,15 @@ jobs:
 
     - name: Biên dịch file APK Android
       run: |
+        set -e
         cd android
-        ./gradlew assembleDebug --no-daemon --info 2>&1 | tail -100
+        ./gradlew assembleDebug --no-daemon --stacktrace
 
-    - name: Kiểm tra file APK đã tạo chưa
+    - name: Tìm file APK vừa tạo
       run: |
-        find android/app/build/outputs -name "*.apk" 2>/dev/null && echo "APK OK" || echo "APK NOT FOUND"
+        echo "=== Tìm file APK ==="
+        find android/app/build -name "*.apk" 2>/dev/null || echo "KHÔNG TÌM THẤY APK"
+        ls -lh android/app/build/outputs/apk/debug/ 2>/dev/null || echo "Thư mục không tồn tại"
 
     - name: Xuất file APK lên GitHub
       uses: actions/upload-artifact@v4
@@ -42,3 +45,4 @@ jobs:
         name: LaChanNguoiThan-APK
         path: android/app/build/outputs/apk/debug/app-debug.apk
         retention-days: 30
+        if-no-files-found: error
