@@ -27,26 +27,31 @@ jobs:
     - name: Phân quyền cho gradlew
       run: chmod +x android/gradlew
 
-    - name: In thông tin môi trường
-      run: |
-        echo "ANDROID_HOME=$ANDROID_HOME"
-        ls $ANDROID_HOME/platforms/ || echo "No platforms"
-        ls $ANDROID_HOME/build-tools/ || echo "No build-tools"
-        java -version
-        cat android/gradle/wrapper/gradle-wrapper.properties
-
-    - name: Biên dịch file APK Android
+    - name: Biên dịch APK và lưu log lỗi
+      id: build_step
       run: |
         cd android
-        ./gradlew assembleDebug --no-daemon --stacktrace 2>&1
+        ./gradlew assembleDebug --no-daemon --stacktrace > ../build.log 2>&1
+        BUILD_EXIT=$?
+        echo "exit_code=$BUILD_EXIT" >> $GITHUB_OUTPUT
+        exit $BUILD_EXIT
 
-    - name: Tìm file APK vừa tạo
+    - name: Upload build log (kể cả khi lỗi)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-log
+        path: build.log
+        retention-days: 3
+
+    - name: Tìm APK
       if: always()
       run: |
-        echo "=== Tìm file APK ==="
-        find android/app/build -name "*.apk" 2>/dev/null || echo "KHÔNG TÌM THẤY APK"
+        echo "=== APK files ==="
+        find android/app/build -name "*.apk" 2>/dev/null || echo "KHÔNG TÌM THẤY"
 
     - name: Xuất file APK lên GitHub
+      if: steps.build_step.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
         name: LaChanNguoiThan-APK
