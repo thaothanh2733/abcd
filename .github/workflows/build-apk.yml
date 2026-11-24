@@ -24,6 +24,10 @@ jobs:
       with:
         gradle-version: '8.5'
 
+    - name: Tự động chấp nhận giấy phép Android SDK
+      run: |
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
     - name: Biên dịch file APK Android
       run: |
         cd android
