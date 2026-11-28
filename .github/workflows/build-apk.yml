@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout mã nguồn
@@ -45,7 +47,12 @@ jobs:
         echo '```text' >> $GITHUB_STEP_SUMMARY
         tail -n 150 /tmp/gradle.log >> $GITHUB_STEP_SUMMARY
         echo '```' >> $GITHUB_STEP_SUMMARY
-        tail -150 /tmp/gradle.log
+        cp /tmp/gradle.log build_error.log
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git add build_error.log
+        git commit -m "chore: Luu log loi build [skip ci]" || true
+        git push || true
 
     - name: Kiem tra APK
       if: always()
