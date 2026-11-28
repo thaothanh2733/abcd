@@ -41,9 +41,11 @@ jobs:
     - name: In 200 dong log cuoi neu that bai
       if: failure()
       run: |
-        echo "============ GRADLE BUILD LOG (200 dong cuoi) ============"
-        tail -200 /tmp/gradle.log
-        echo "============================================================"
+        echo "## ❌ Lỗi biên dịch Gradle" >> $GITHUB_STEP_SUMMARY
+        echo '```text' >> $GITHUB_STEP_SUMMARY
+        tail -n 150 /tmp/gradle.log >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        tail -150 /tmp/gradle.log
 
     - name: Kiem tra APK
       if: always()
